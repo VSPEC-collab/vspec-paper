@@ -115,6 +115,122 @@ photosphere temperature to differentiate it from the temperature of spots, facul
     \label{fig:surface_map}
 \end{figure}
 
+\subsection{Stellar Spectra \label{subsec:spectra}}
+Once the surface coverage is calculated, a composite spectrum is computed from a grid of PHOENIX stellar spectra
+\citep{husser2013} As of \texttt{VSPEC 0.1}, we have spectra between 2300 K and 3900 K, with steps of
+100 K. Each spectrum has $\log{g} = 5$ and solar metalicity.
+The raw spectra span from 0.1 to 20 \micron~ with $5 \times 10^{-6}$ \micron~ steps, however binned
+versions are pre-computed for faster runtimes.
+
+\subsection{Spots \label{subsec:spots}}
+Our star spot model is nearly entirely based on observations of the sun. Sun spots can be resolved and are well-studied,
+whereas spots on other stars (e.g., M dwarfs) can only be observed indirectly. We therefore designed our spot model to mimic
+sun spots but with parameterized values for spot temperature and lifetime that can be matched to observations of other stellar types and ages.
+
+
+On the Sun, spots have two regions: the dark, central umbra and the lighter, surrounding penumbra. A detailed review of sunspot behavior,
+including sizes and lifetimes, is \citet{solanki2003}, however the specific solar values are not relevant to this description. However,
+the spot area as a function of time is
+\begin{equation}
+    A(t) = \left\{
+    \begin{array}{lr}
+        A_0 e^{(t-t_0)/\tau}, & \text{if } t \leq t_0 \\
+        A_0 - W(t-t_0), & \text{if } t > t_0
+    \end{array}
+    \right\}
+\end{equation}
+where $A_0$ is the maximum area reached, $t_0$ is the time of the maximum, $\tau$ is the exponential growth rate, and $W$ is the linear decay rate.
+
+{\sc VSPEC} also takes in parameters describing the population of spots, such as the mean of the (lognormal) peak area distribution
+\citep{bogdan1988}, the equilibrium surface coverage, and the distribution style.
+
+\subsection{Faculae \label{subsec:faculae}}
+Faculae are magnetically-generated regions of the solar surface that usually appear as bright points near the limb; we employ the ``hot wall''
+model \citep{spruit1976} where faculae are described as three-dimensional pores in the stellar surface with a hot, bright wall, and a
+cool, dark floor, as shown in Figure \ref{fig:fac_struct}.
+
+Their three-dimensional structure causes faculae to behave differently depending on their angle from disk-center. Close to the limb,
+the hot wall is visible to the observer, and faculae appear as bright points. Near the center, however, the cool floor is exposed and
+faculae appear dark. To consider this effect in the faculae lightcurve, we compute the fraction of the facula's normalized area -- the
+area on the disk it would occupy as a flat spot -- that is occupied by each the hot wall and cool floor. This is done via numerical integral
+along the radius of the spot.
+
+\begin{equation}
+    f_{wall} = \frac{\int _{-R}^{R} Z_{\rm eff} dr}{\int _{-R}^{R} Z_{\rm eff} dr + \int _{-R}^{R} R_{\rm eff} dr}
+\end{equation}
+where $Z_{\rm eff}$ is the apparent height of the wall
+\begin{equation}
+    Z_{\rm eff} = \left\{
+    \begin{array}{lr}
+        Z_w \sin{\alpha}, & \text{if } \alpha \leq \alpha_{\rm crit} \\
+        2\sqrt{R^2 - r^2}\cos{\alpha}, & \text{if } \alpha > \alpha_{\rm crit}
+    \end{array}
+    \right\}
+\end{equation}
+and $R_{\rm eff}$ is the apparent width of the floor
+\begin{equation}
+    R_{\rm eff} = \left\{
+    \begin{array}{lr}
+        2\sqrt{R^2 - r^2} - Z_w\sin{\alpha}, & \text{if } \alpha \leq \alpha_{\rm crit} \\
+        0, & \text{if } \alpha > \alpha_{\rm crit}
+    \end{array}
+    \right\}
+\end{equation}
+for facula radius $R$, depth $Z_w$, and angle from disk-center $\alpha$. $r$ in this numerical scheme
+is defined as the distance from the center of the facula along the radial line connecting the facula center to the
+disk center. $\alpha_{\rm crit}$ is the value of alpha at which the floor is no longer visible and is defined to be $\arctan{\frac{2\sqrt{R^2-r^2}}{Z_w}}$.
+
+According to \citet{1997ApJ...484..479T}, faculae temperatures (of both the floor and wall) are dependent on the facula radius,
+while depth appears to be constant. They also find that the smallest faculae have no visible floor, and that even at disk center they
+appear as bright points. We parameterize the floor temperature to be
+\begin{equation}
+    \Delta T_{\rm eff, floor} = \left\{
+    \begin{array}{lr}
+    \text{Not visible}, & \text{if } r<r_{\rm min} \\
+    m_{\rm floor}(r-r_{\rm min}) + \Delta T_{\rm eff, floor, 0}, & \text{if } r \ge r_{\rm min}
+    \end{array}
+    \right\}
+\end{equation}
+
+Where $r$ is the radius of the facula, $r_{\rm min}$ is the minimum radius where the floor is visible, $\Delta  T_{\rm eff, floor, 0}$ is
+the difference between the floor and photosphere \teff at $r_{\rm min}$, and $m_{\rm floor}$ is the slope of the relationship with
+units of [temperature] [length]$^{-1}$.
+
+Similarly, the wall temperature is parameterized
+
+\begin{equation}
+    \Delta T_{\rm eff,wall} = m_{\rm wall}r + \Delta T_{\rm eff,wall,0}
+\end{equation}
+
+Where $\Delta T_{\rm eff,wall,0}$ is the temperature of a zero-radius facula and and $m_{\rm wall}$ is the slope of the radius-temperature
+relationship with units of [temperature] [length]$^{-1}$.
+These relationships can be defined by the user, for example setting $m=0$ for constant temperatures.
+
+Facula lifetimes are defined as the time it takes to decay by $e^{-2}$. Because faculae grow and decay exponentially
+at the same rate, each facula spends 1 lifetime with a radius greater than $e^{-1}$ of it's maximum. Each facula is born
+and dies at $e^{-2}$ of its maximum, effectively existing in the code for two lifetimes.
+
+\citet{hovis-afflerbach2022} suggest a typical facula lifetime to be on the order of 6 hours,
+with a distribution that resembles a Poisson function. However, we choose a lognormal distribution
+for both lifetime and maximum radius because it does not allow for these values to be 0. We choose to
+correlate lifetime and radius so that they are determined by the normally distributed random variable $\mu$;
+for each new facula, $\mu$ is randomly drawn and determines both the faclue lifetime and maximum radius.
+
+\begin{figure}
+    \centering
+    \gridline{\includegraphics[width=0.5\textwidth]{figures/facula_model.png}}
+    \gridline{\includegraphics[width=0.5\textwidth]{figures/facula_depth.pdf}}
+    \script{facula_depth.py}
+    \caption{
+        ``Hot Wall'' model of faculae. Faculae structure causes their contrast to be dependent on their distance
+        from the center of the disk. {\bf Top}: Depiction of a facula on the limb of a star. The hot wall is exposed
+        to the observer causing the pore to appear bright. At disk center, the cool floor is most visible. {\bf Bottom}:
+        The effects of depression depth and viewing angle on facula brightness. The 3D structure of faculae is most apparent
+        when radius $\sim$ depth. A toy flux model was used to demonstrate the shape of these curves, but their magnitudes
+        in practice depend on stellar spectral models.
+        }
+    \label{fig:fac_struct}
+\end{figure}
 
 \bibliography{syw,VSPEC}
 

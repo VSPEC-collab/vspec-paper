@@ -91,6 +91,31 @@ Section \ref{sec:pl_model} discusses modeling the planetary atmosphere, includin
 built-in GCM. In Section \ref{sec:examples} we provide examples of {\sc VSPEC} use cases and demonstrate
 its value to the exoplanet community. Finally, in Section \ref{sec:conclusion} we will discuss the future of the code and issues it might have.
 
+
+{Stellar Model \label{sec:star}}
+
+The {\sc VSPEC} star model is designed modularly to allow
+for both simple and complex behaviors. Currently, it
+is represented by a rectangular grid of points on the stellar surface,
+each assigned an effective temperature. At any given time, the model computes
+the surface coverage fractions of each temperature visible to the observer, accounting for the
+spherical geometry, limb darkening, and any occultation by a transiting planet.
+
+The attributes of the \texttt{Star} class describe the bulk properties of the star, including radius,
+period, and the effective temperature of quiet photosphere. Herein we refer to this temperature as the
+photosphere temperature to differentiate it from the temperature of spots, faculae, or other sources of variability.
+
+\begin{figure}
+    \centering
+        \includegraphics[width=0.5\textwidth]{figures/surface_map_and_lc.pdf}
+    \script{surface_map_and_lc.py}
+    \caption{{\bf Top}: The surface map of a star with spots and faculae during a transit.
+    The large circles are spots. Faculae display their 3D structure, as the hot wall is more prevalent near the limbs.
+    {\bf Bottom}: An example lightcurve of a spotted star.}
+    \label{fig:surface_map}
+\end{figure}
+
+
 \bibliography{syw,VSPEC}
 
 \end{document}

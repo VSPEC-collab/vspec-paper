@@ -388,6 +388,7 @@ these simulations because the effect was not considered in the original analysis
         spots to a star's surface can give an otherwise flat transit spectrum features that appear to be molecular bands.
         This is in agreement with the results of \citet{moran2023}.
         }
+    \script{moran23.py}
     \label{fig:moran_transit}
 \end{figure}
 
@@ -396,6 +397,61 @@ light lost to absorbers in a planetary atmosphere. Figure \ref{fig:moran_transit
 this is due to an increase in the spotted fraction of the surface relative to the quiet photosphere. However, if a spot was blocked by
 the planet we might see similar features inverted to mimic emission.
 
+\subsection{Phase Curve}
+Analysis of JWST MIRI-LRS phase curves of GJ 1214b by \citet{kempton2023} did not consider stellar
+contamination because of the slow rotation rate of the host star \citep[approximately 1/80$^{\text{th}}$ the orbital frequency,][]{cloutier2021}.
+In this example we use {\sc VSPEC} to demonstrate that this is a reasonable assumption.
+
+We initialize {\sc VSPEC} to run a 41.0 hour observation with a cadence of 15 minutes. We use stellar and planetary parameters
+from the NExScI Exoplanet Archive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/GJ1214b}}.
+The GCM used has a thermal inertia of $\epsilon = 6$ and a 1 bar \ce{CO2} atmosphere.
+
+We initialized two stellar models: one with nothing more than a 3250 K surface, and another with 20\% coverage by 2700 K spots.
+
+After running the {\sc VSPEC} simulations, we bin into 0.5 $\mu m$ wavelength channels and normalize each channel to the two eclipses.
+We assume the star behaves linearly between eclipse measurements and attribute any deviation to the planet.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{sphx_glr_plot_gj1214b_kempton23_006.png}
+    \caption{
+        MIRI phase curves for GJ 1214b binned by wavelength. Compare to \citet{kempton2023} Extended Data Figure 1.
+        While the addition of stellar variability does have a visible effect on the lightcurve, it is much smaller than the thermal emission by the exoplanet.
+        }
+    \script{kempton23.py}
+    \label{fig:gj1214b}
+\end{figure}
+
+We show in Figure \ref{fig:gj1214b} that the stellar properties assumed in this example do not generate enough contamination to
+significantly change the observed phase curve of GJ 1214b. At it's worst (i.e. near transit) the observed spectrum varies by 50 ppm due to stellar
+contamination -- compared to the 700 ppm relative flux of the planet at $8.5 {\mu m}$. Similar studies could be done to assess the potential for
+stellar contamination in other exoplanetary systems in order to judge fitness as a target.
+
+\subsection{MIRECLE Phase Curve}
+In this example we will look at the best-case target for the Mid-IR Exoplanet CLimate Explorer \citep[MIRECLE,][]{mandell2022}
+mission concept: Proxima Centauri b with no stellar variability. We will instead examine the expected noise produced by this observation
+and assess the detectability of the planet in a single orbit. {\sc VSPEC} uses the noise models built into PSG, allowing native support for
+noise due to the instrument, source, and astrophysical background.
+
+We use \texttt{VSPEC}'s built-in MIRECLE instrument template, which includes a 2 m aperture and observes from 1-18 $\mu m$ with $R=50$.
+We draw stellar and bulk planetary parameters from the NExScI Exoplanet Archive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/proxima\%20cen}}
+and assume $i=85^\circ$ and Earth density. The GCM we use has a Bond albedo of 0.3, $\epsilon=1.5$, $P_{\rm surf} = 1 \text{bar}$ and a 100 ppm \ce{CO2} atmosphere with a \ce{N2} background.
+We ran the simulation for one orbit with an 24 hour cadence. Because this is a best-case scenario, we assumed perfect knowledge of the stellar spectrum.
+We are left with the planetary spectrum and photon noise from the star.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/mirecle.pdf}
+    \caption{
+        Simulated spectra of Proxima Centauri b observed by MIRECLE. Noise and error bars based on 24 hour integrations with a 2 m aperture MIRECLE
+        space telescope.
+        }
+    \script{mirecle.py}
+    \label{fig:mirecle}
+\end{figure}
+
+\section{Conclusion \label{sec:conclusion}}
+\TJ{Talk about what we can do next.}
 
 \bibliography{syw,VSPEC}
 

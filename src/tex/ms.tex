@@ -232,6 +232,131 @@ for each new facula, $\mu$ is randomly drawn and determines both the faclue life
     \label{fig:fac_struct}
 \end{figure}
 
+\subsection{Flares \label{subsec:flares}}
+Flares are an important source of stellar variability on short timescales. We use the {\sc xoflares}
+package \citep{barclay2020} to generate realistic lightcurve shapes and assume a blackbody spectrum.
+{\sc xoflares} uses a flare profile function empirically derived by \citet{davenport2016} to
+describe a flare lightcurve. Temperature, $E$, FWHM, and the peak time together completely describe a flare's multiwavelength lightcurve.
+
+Before simulating an observation, {\sc VSPEC} pre-computes a population of flares based on the frequency-energy relationship from \citet{gao2022}:
+\begin{equation} \label{eq:flare_freq}
+    \log{(f{\rm [day]})} = \beta + \alpha~\log{(E/{\rm [erg]})}
+\end{equation}
+
+Where $f$ is the frequency of flares with energies $\ge E$.
+We compute the number of expected flares over a time duration and determine the number to create $N$ by a random Poisson draw.
+We then generate $N$ flares with energies determined by the quantile function:
+\begin{equation}
+    E = E_{\text{min}} (1-X)^{1/\alpha}
+\end{equation}
+
+where $E_{\text{min}}$ is the minimum considered flare energy and $X$ is a random number on the interval $[0,1)$.
+We set the default values $\alpha=-0.829$, $\beta=26.87$ from \citet{gao2022}. Figure \ref{fig:flare_freq}
+shows our simulation results compared to their powerlaw.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/flare_freq.pdf}
+    \caption{
+        {\bf Top}: Generated flare frequencies compared to those expected from \citet{gao2022}, generated using a 10,000 day simulation.
+        The $y$-axis shows the frequency of flares with energies {\em greater than or equal to} the value of the $x$-axis. Error bars
+        based on the square root of the number of observed flares as this is a Poisson process.
+        {\bf Bottom}: Lightcurve of a star flaring with the same powerlaw slope as the top panel, but the intercept ($\beta$) has been increased by 0.3
+        for visual effect. The mean flare temperature is $9000$ K and the mean FWHM is $3$ hours.
+        }
+    \script{flare_freq.py}
+    \label{fig:flare_freq}
+\end{figure}
+
+\subsection{Granulation}
+Granulation is a source of stellar variability that arises from convection near the surface of the star.
+The result is a stellar surface that is not constant in temperature and that changes on very short timescales.
+Hydrodynamic simulations of stellar atmospheres \citep[e.g.][]{magic2014} describe hot granules of rising gas surrounded by cooler,
+sinking regions with a \teff a few percent lower than the nominal value.
+
+We model granulation as a global process, and its effects are computed after the effects of spots and faculae.
+Of the remaining ``quiet'' photosphere (i.e. the regions not covered in spots of faculae), a fraction is computed to be part of the cool
+inter-granule surface. The surface coverage of the cool region at any given time is computed by a Gaussian process (GP) using
+the \sc{tinygp} package \citep{foreman-mackey2024} following the methodology of \citet{gordon2020}.
+The GP uses a custom kernel function based on a power spectrum \citep{anderson1990,kallinger2014} to produce random changes in the coverage.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/granulation_lightcurve.pdf}
+    \caption{
+        Effect of granulation on the lightcurve of a star. This simulation assumes a mean
+        10\% coverage by inter-granule region whose temperature is 300 K lower than the surrounding photosphere.
+        It also assumes that the coverage value varies with a magnitude of 1\% on a timescale of 6 hours.
+        }
+    \script{granule_lc.py}
+    \label{fig:gran_lc}
+a\end{figure}
+
+\section{Planet Model \label{sec:pl_model}}
+Our model uses the Planetary Spectrum Generator\footnote{\href{https://psg.gsfc.nasa.gov/}{https://psg.gsfc.nasa.gov/}}
+\citep[PSG,][]{villanueva2018} to calculate the planetary spectrum. We upload a 3D Global Circulation Model (GCM) to PSG's
+Global Emission Spectra (GlobES) application to retrieve thermal and reflected spectra for various points in the planet's phase curve. \TJ{cite Vincent's paper}
+
+\subsection{Interfacing through {\sc pypsg}}
+\ref{subsec:pypsg}
+{\sc VSPEC} interfaces with PSG using the {\sc pypsg} package \TJ{link}, which is essentially a Python wrapper for the PSG API system.
+
+\TJ{Write much more}
+
+\subsection{3D Planet models}
+{\sc VSPEC} allows the user to upload any desired GCM. However, for questions that focus on detectability,
+the specific physics of the GCM are less important than properties like day/night temperature, surface pressure, or
+the major absorbers in the atmosphere. To simplify these studies, {\sc VSPEC} has a built-in GCM that takes in just a
+few parameters and produces a simple-yet-robust exoplanet climate. Simplicity allows the user to know everything about
+the model and reduce surprises, but its basis in thermodynamics and robust energy balance make this model fit for publication-level science \TJ{is this really true? probably not}.
+
+The {\sc VSPEC} GCM centers around a 2D temperature map of the planet's surface. Based on \citet{cowan2011}, this map
+is constructed completely given the incident flux from the star (parameterized by the host \teff and radius
+and the planet's semimajor axis and Bond albedo) and the unitless thermal redistribution efficiency $\epsilon$.
+This efficiency is 0 for a planet that reradiates instantly and $\gg 1$ for an atmosphere that efficiently redistributes heat to its night side.
+Figure \ref{fig:thermal_inertia} shows a temperature map example for an Earth-like planet with $\epsilon = 2\pi$.
+These temperature maps are validated by the energy balance of the planet; {\sc VSPEC} computes the incident and emergent
+flux across the planet and asserts that they agree.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/cowan_gcm.pdf}
+    \caption{
+        Example of a surface temperature map created by {\sc VSPEC}. The solar flux at Earth,
+        a Bond albedo of 0.3, and $\epsilon = 2\pi$ were used in this case.
+        Notice that the hottest point is offset from the sub-stellar point due to thermal inertia.
+    }
+    \script{cowan_gcm.py}
+    \label{fig:thermal_inertia}
+\end{figure}
+
+Now that we have the surface temperature at each GCM coordinate we can build the atmosphere on top of it.
+We choose a surface pressure for our model and generate a pressure profile as a function of layer. It is
+important to note that the choice of the pressure profile -- provided it is scaled to the surface pressure and sampled in a reasonable manner -- is
+arbitrary and will not affect the spectrum of the planet. This is because PSG calculates the altitude and thickness of each layer based on the
+pressure and surface gravity; the pressure profile is essentially a proxy for the sampling of atmosphere layers as a function of altitude.
+
+Next we create an adiabatic temperature profile at each GCM coordinate. An adiabat assumes that
+\begin{equation}
+    T^\gamma P^{1 - \gamma} = \text{const.}
+\end{equation}
+where $\gamma$ is the adiabatic index. Therefore the temperature profile can be computed
+\begin{equation}
+    T = T_{\rm surf} \left(\frac{P}{P_{\rm surf}} \right)^{1 - \frac{1}{\gamma} }
+\end{equation}
+
+Finally, we populate our atmosphere with molecules. The user specifies the species and abundance and atmosphere is filled accordingly with a constant molecular suite.
+
+The caveats of this approach lie in the simplified physics of the atmosphere structure. The heat-redistribution model does not
+capture the effects of latitudinal mixing; an adiabatic temperature profile will never exhibit the temperature inversion
+that we know form in complex atmospheres like Earth's. Similarly, setting a constant abundance does not allow for water vapor to
+vary with temperature as it does on Earth. We must also be careful not to add so much of an absorbing species that the energy balance of
+the atmosphere would change; instead we treat them as trace species in an otherwise transparent atmosphere. Our simplified approach
+allows us to easily examine a large parameter space of atmospheres whose behaviors are easy to predict.
+
+
+
+
 \bibliography{syw,VSPEC}
 
 \end{document}

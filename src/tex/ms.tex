@@ -1,6 +1,7 @@
 % Define document class
 \documentclass[twocolumn]{aastex631}
 \usepackage{showyourwork}
+\usepackage[version=4]{mhchem}
 
 
 \newcommand{\teff}{$T_{\rm eff}$}
@@ -277,7 +278,7 @@ sinking regions with a \teff a few percent lower than the nominal value.
 We model granulation as a global process, and its effects are computed after the effects of spots and faculae.
 Of the remaining ``quiet'' photosphere (i.e. the regions not covered in spots of faculae), a fraction is computed to be part of the cool
 inter-granule surface. The surface coverage of the cool region at any given time is computed by a Gaussian process (GP) using
-the \sc{tinygp} package \citep{foreman-mackey2024} following the methodology of \citet{gordon2020}.
+the {\sc tinygp} package \citep{foreman-mackey2024} following the methodology of \citet{gordon2020}.
 The GP uses a custom kernel function based on a power spectrum \citep{anderson1990,kallinger2014} to produce random changes in the coverage.
 
 \begin{figure}
@@ -413,7 +414,7 @@ We assume the star behaves linearly between eclipse measurements and attribute a
 
 \begin{figure}
     \centering
-    \includegraphics[width=0.5\textwidth]{sphx_glr_plot_gj1214b_kempton23_006.png}
+    \includegraphics[width=0.5\textwidth]{figures/kempton23.pdf}
     \caption{
         MIRI phase curves for GJ 1214b binned by wavelength. Compare to \citet{kempton2023} Extended Data Figure 1.
         While the addition of stellar variability does have a visible effect on the lightcurve, it is much smaller than the thermal emission by the exoplanet.

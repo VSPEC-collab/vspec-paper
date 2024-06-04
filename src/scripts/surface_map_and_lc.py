@@ -16,6 +16,7 @@ from vspec_vsm.config import MSH
 
 import pypsg
 
+import setup_psg;setup_psg.setup_psg()
 pypsg.docker.set_url_and_run()
 
 from VSPEC import ObservationModel,PhaseAnalyzer

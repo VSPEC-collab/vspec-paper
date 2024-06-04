@@ -8,13 +8,11 @@ from astropy import units as u
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
-import os
 import shutil
 
 from vspec_vsm.faculae import Facula
 from vspec_vsm.helpers import round_teff
 
-from pathlib import Path
 
 import paths
 

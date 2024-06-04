@@ -15,6 +15,7 @@ outfile = paths.figures / 'moran23.pdf'
 SEED = 10
 PRE_TRANSIT = 8
 IN_TRANSIT = 13
+import setup_psg;setup_psg.setup_psg()
 pypsg.docker.set_url_and_run()
 
 # Instrument
@@ -253,9 +254,9 @@ filename = paths.static / 'moran2023_fig3.txt'
 df = pd.read_fwf(filename,colspecs=[(0,8),(9,14),(15,20),(21,25),(26,28)],
     header=20,names=['Reduction','Wave','Width','Depth','e_Depth'])
 used_eureka = df['Reduction']=='Eureka'
-moran_x = df.loc[used_eureka,'Wave']
-moran_y = df.loc[used_eureka,'Depth']
-moran_yerr = df.loc[used_eureka,'e_Depth']
+moran_x = df.loc[used_eureka,'Wave'].values
+moran_y = df.loc[used_eureka,'Depth'].values
+moran_yerr = df.loc[used_eureka,'e_Depth'].values
 moran_mean = np.mean(moran_y)
 
 fig, ax = plt.subplots(1,1,figsize=(4,3),tight_layout=True)

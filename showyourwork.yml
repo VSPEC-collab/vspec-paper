@@ -31,10 +31,12 @@ datasets:
 
 # Custom file dependencies
 dependencies:
-  # src/scripts/my_script.py:
-  #   - src/data/dataset_for_my_script.dat
-  # src/tex/ms.tex:
-  #   - src/tex/stylesheet.tex
+  src/scripts/surface_map_and_lc.py:
+    - src/scripts/spot_lightcurve.yaml
+  src/scripts/flare_freq.yaml:
+    - src/scripts/flare_lc.yaml
+  src/scripts/moran.py:
+    - src/static/moran2023_fig3.txt
 
 # Name of the `.tex` manuscript and corresponding `.pdf` article
 ms_name: ms

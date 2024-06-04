@@ -19,6 +19,7 @@ import paths
 outfile = paths.figures / 'granulation_lightcurve.pdf'
 
 SEED = 32
+import setup_psg;setup_psg.setup_psg()
 pypsg.docker.set_url_and_run()
 
 

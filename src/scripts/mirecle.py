@@ -16,6 +16,7 @@ import paths
 outfile = paths.figures / 'mirecle.pdf'
 
 SEED = 10
+import setup_psg;setup_psg.setup_psg()
 pypsg.docker.set_url_and_run()
 
 # Instrument

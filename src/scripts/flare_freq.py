@@ -12,6 +12,7 @@ import pypsg
 
 import paths
 
+import setup_psg;setup_psg.setup_psg()
 pypsg.docker.set_url_and_run()
 
 SEED = 10

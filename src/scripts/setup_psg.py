@@ -6,9 +6,13 @@ import os
 
 import pypsg
 
-try:
-    key = os.environ['PSG_API_KEY']
-    pypsg.settings.save_settings(api_key=key)
+def setup_psg():
+    try:
+        key = os.environ['PSG_API_KEY']
+        pypsg.settings.save_settings(api_key=key)
+        print('API Key was successfully set.')
 
-except KeyError:
-    assert pypsg.docker.is_psg_installed()
+    except KeyError:
+        print('API Key was not set.')
+        assert pypsg.docker.is_psg_installed()
+        print('PSG is installed.')

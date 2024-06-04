@@ -354,7 +354,47 @@ vary with temperature as it does on Earth. We must also be careful not to add so
 the atmosphere would change; instead we treat them as trace species in an otherwise transparent atmosphere. Our simplified approach
 allows us to easily examine a large parameter space of atmospheres whose behaviors are easy to predict.
 
+\section{Examples \label{sec:examples}}
 
+\subsection{Transit of a spotted star}
+
+In this section we will simulate the transit of a bare rock across a spotted star to demonstrate how an inhomogeneous
+stellar surface can lead to a false atmospheric signal -- a phenomenon known as the ``transit light source effect'' \citep{rackham2018}.
+During transit, the planetary atmosphere is illuminated by the portion of the star directly behind the planet. The depth of the transit
+should be measured with respect for the spectrum of this region of the stellar surface. However, the disk-integrated stellar spectrum is often used instead.
+In the case that the stellar surface is not homogeneous, the transit signal is contaminated by the star.
+\citet{moran2023} first observed this effect using JWST from super-Earth GJ 486b.
+
+Whenever possible, we draw parameter values from \citet{moran2023} and the NExScI Archive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/GJ1214b}}.
+We use the JWST NIRSpec/G395H instrument setup but set $R=200$ to account for the resolution of the reduction.
+Additionally we observe for 3.53 hours with an 8 minute cadence. Mid-transit is reached exactly halfway through the observation.
+
+We will do three \texttt{VSPEC} simulations:
+\begin{enumerate}
+    \item Bare rock, no spots.
+    \item 1 bar \ce{H2O} atmosphere, no spots.
+    \item Bare rock, 2.5\% coverage by 2700 K spots
+\end{enumerate}
+
+We expect in case 1 to observe a flat spectrum, and in case 2 to observe additional
+absorption from the \ce{H2O} atmosphere. Note also that we disabled \ce{H2O}-\ce{H2O} collision-induced absorption (CIA) for
+these simulations because the effect was not considered in the original analysis of GJ 486b.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/moran23.pdf}
+    \caption{
+        The results from our spotted transit experiment. We find that the addition of
+        spots to a star's surface can give an otherwise flat transit spectrum features that appear to be molecular bands.
+        This is in agreement with the results of \citet{moran2023}.
+        }
+    \label{fig:moran_transit}
+\end{figure}
+
+We find that, as expected, the addition of spots changes the transit depth in a way that depends on wavelength -- mimicking
+light lost to absorbers in a planetary atmosphere. Figure \ref{fig:moran_transit} shows us that, in this case, we observe false absorption;
+this is due to an increase in the spotted fraction of the surface relative to the quiet photosphere. However, if a spot was blocked by
+the planet we might see similar features inverted to mimic emission.
 
 
 \bibliography{syw,VSPEC}

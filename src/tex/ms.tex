@@ -53,9 +53,12 @@ Greenbelt, MD 20771, USA}
 % Abstract with filler text
 \begin{abstract}
     We present the Variable Star Phase Curve (\href{https://github.com/VSPEC-collab/VSPEC}{ \sc VSPEC}) code,
-    a python package to simulate spectroscopic observations of rocky exoplanets in the presence of stellar variability.
+    a python package to simulate combined-light spectroscopic observations of exoplanets in the presence of stellar variability and inhomogeneity.
     {\sc VSPEC} uses the Planetary Spectrum Generator's Global Emission Spectra (PSG GlobES) application along with a custom-built
-    stellar model to produce spectroscopic light curves of the planet-host system. We also describe associated codes. \TJ{These codes should be named here and described a little}
+    stellar model based on an existing grid of stellar photosphere models to produce spectroscopic light curves of the planet-host system.
+    VSPEC can be a useful tool for modeling observations of exoplanets in transiting geometries (primary transit, secondary eclipse) as well as orbital phase curve measurements,
+    and is built in a modular and flexible configuration for easy adaptability to new stellar and planetary model inputs.
+    We also describe associated codes. \TJ{These codes should be named here and described a little}
 \end{abstract}
 
 \keywords{Exoplanet, M dwarf}
@@ -66,12 +69,12 @@ Greenbelt, MD 20771, USA}
 
 In the era of high-sensitivity exoplanet characterization missions such as the James Webb Space Telescope (JWST)
 and the Atmospheric Remote-sensing Infrared Exoplanet Large-survey (ARIEL), spectral analysis of exoplanet atmospheres
-is increasingly sensitive to contamination due to stellar inhomogenies (spots, granulation, etc.).
+is increasingly sensitive to contamination due to stellar inhomogeneities (e.g. spots, granulation) and stochastic stellar variability (e.g. flares).
 
 Recent analysis of the JWST/NIRSpec transit of GJ 486b by \citet{moran2023} exposed a degeneracy between
 atmospheric absorption by water and water-rich spots on the stellar surface. This ``transit light source effect''
 \citep[TLS,][see also \citet{apai2018,barclay2021,garcia2022,barclay2023}]{rackham2018}
-occurs when the occulted region of the stellar surface is not representitive of the disk-integrated spectrum
+occurs when the occulted region of the stellar surface is not representative of the disk-integrated spectrum.
 
 Similarly, the Mid-IR Exoplanet CLimate Explorer \citep[MIRECLE,][]{mandell2022} mission concept
 will employ the Planetary Infrared Excess \citep[PIE][]{stevenson2020} technique to extract the planetary
@@ -80,7 +83,7 @@ contribution from combined-light observations. Uncertainties on the stellar spec
 To adequately prepare for future observations and future missions it will be necessary to demonstrate a method to mitigate these effects.
 This task requires a flexible tool that combines models of exoplanet atmospheres and stellar variability in a robust way.
 
-We present {\sc VSPEC}: Variable Star PhasE Curve\footnote{\url{https://github.com/VSPEC-collab/VSPEC}},
+In this paper we present present {\sc VSPEC}: Variable Star PhasE Curve\footnote{\url{https://github.com/VSPEC-collab/VSPEC}},
 an open-source Python 3 package to simulate observations of exoplanet systems with variable host stars.
 {\sc VSPEC} combines NASA's Planetary Spectrum Generator \citep[PSG,][]{villanueva2018} with a grid of
 custom PHOENIX models \citep{husser2013} to produce multiwavelength phase curves of the system, accounting

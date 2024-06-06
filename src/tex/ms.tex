@@ -7,15 +7,18 @@
 \newcommand{\teff}{$T_{\rm eff}$}
 \definecolor{tedcommentcolor}{HTML}{e17701}
 \newcommand{\TJ}[1]{\textcolor{tedcommentcolor}{#1}}
+\newcommand{\vspec}[1]{\texttt{VSPEC}#1}
+% \def\vspec#{\texttt{VSPEC}}
 
-\shorttitle{\sc VSPEC}
+\shorttitle{\vspec{}}
 \shortauthors{Johnson et al.}
 
 % Begin!
 \begin{document}
 
 % Title
-\title{The {\sc VSPEC} code: Spectroscopic phase curves of 3D exoplanet models in the presence of stellar variability}
+% \title{The \vspec{} code: Spectroscopic phase curves of 3D exoplanet models in the presence of stellar variability}
+\title{\vspec{} and Friends: A suite of utilities to model spectroscopic phase curves of 3D exoplanet atmospheres in the presence of stellar variability.}
 
 \author{Ted Johnson}
 \affiliation{NASA Goddard Space Flight Center \\
@@ -52,13 +55,14 @@ Greenbelt, MD 20771, USA}
 
 % Abstract with filler text
 \begin{abstract}
-    We present the Variable Star Phase Curve (\href{https://github.com/VSPEC-collab/VSPEC}{ \sc VSPEC}) code,
+    We present the Variable Star Phase Curve (\href{https://github.com/VSPEC-collab/VSPEC} \vspec{}) code,
     a python package to simulate combined-light spectroscopic observations of exoplanets in the presence of stellar variability and inhomogeneity.
-    {\sc VSPEC} uses the Planetary Spectrum Generator's Global Emission Spectra (PSG GlobES) application along with a custom-built
+    \vspec{} uses the Planetary Spectrum Generator's Global Emission Spectra (PSG GlobES) application along with a custom-built
     stellar model based on an existing grid of stellar photosphere models to produce spectroscopic light curves of the planet-host system.
-    VSPEC can be a useful tool for modeling observations of exoplanets in transiting geometries (primary transit, secondary eclipse) as well as orbital phase curve measurements,
-    and is built in a modular and flexible configuration for easy adaptability to new stellar and planetary model inputs.
-    We also describe associated codes. \TJ{These codes should be named here and described a little}
+    \vspec{} can be a useful tool for modeling observations of exoplanets in transiting geometries (primary transit, secondary eclipse) as well as orbital phase curve measurements,
+    and is built in a modular and flexible configuration for easy adaptability to new stellar and planetary model inputs. We additionally present
+    a set of codes developed alongside \vspec{}, including the stellar surface model \texttt{vspec-vsm}, the stellar spectral grid interpolation code
+    Gridpolator, and a Python interface for PSG \texttt{pypsg}.
 \end{abstract}
 
 \keywords{Exoplanet, M dwarf}
@@ -83,22 +87,61 @@ contribution from combined-light observations. Uncertainties on the stellar spec
 To adequately prepare for future observations and future missions it will be necessary to demonstrate a method to mitigate these effects.
 This task requires a flexible tool that combines models of exoplanet atmospheres and stellar variability in a robust way.
 
-In this paper we present present {\sc VSPEC}: Variable Star PhasE Curve\footnote{\url{https://github.com/VSPEC-collab/VSPEC}},
+In this paper we present \vspec{}: Variable Star PhasE Curve\footnote{\url{https://github.com/VSPEC-collab/VSPEC}},
 an open-source Python 3 package to simulate observations of exoplanet systems with variable host stars.
-{\sc VSPEC} combines NASA's Planetary Spectrum Generator \citep[PSG,][]{villanueva2018} with a grid of
-custom PHOENIX models \citep{husser2013} to produce multiwavelength phase curves of the system, accounting
-for a 3D planetary atmosphere, transits and eclipses, and multiple sources of stellar variability.
+\vspec{} itself is merely an interface that pulls together a variable star surface model \texttt{vspec-vsm}\footnote{\url{https://github.com/VSPEC-collab/vspec-vsm}},
+a stellar spectra grid interpolation code Gridpolator\footnote{\url{https://github.com/VSPEC-collab/GridPolator}}, and a Python interface for
+the Planetary Spectrum Generator \citep[PSG,][]{villanueva2018}, \texttt{pypsg}. All of these codes together allow \vspec{} to account for
+3D planetary atmospheres, time-resolved effects of both planet and star, many geometries including transit and eclipse, and realistic noise modeling.
 
-In this paper we will describe the science behind {\sc VSPEC} and demonstrate examples of its use.
+\TJ{Change this later-->}
+In this paper we will describe the science behind \vspec{} and demonstrate examples of its use.
 Section \ref{sec:star} describes the stellar model and the available sources of variability.
 Section \ref{sec:pl_model} discusses modeling the planetary atmosphere, including PSG/GlobES and the
-built-in GCM. In Section \ref{sec:examples} we provide examples of {\sc VSPEC} use cases and demonstrate
+built-in GCM. In Section \ref{sec:examples} we provide examples of \vspec{} use cases and demonstrate
 its value to the exoplanet community. Finally, in Section \ref{sec:conclusion} we will discuss the future of the code and issues it might have.
 
+\section{Using \vspec{}}
+\label{sec:vspec}
 
-{Stellar Model \label{sec:star}}
+The flow of \vspec{}'s code is broken into three parts:
+\begin{enumerate}
+    \item Read in configuration \\
+    \item Compute planetary spectra \\
+    \item Compute stellar spectra
+\end{enumerate}
 
-The {\sc VSPEC} star model is designed modularly to allow
+The main object that a user interacts with is the \texttt{ObservationModel}. This object can be initialized by passing it either a YAML file containing
+all of the simulation information, or a \texttt{InternalParameters} object encoded with the same information. Upon initialization a local working directory
+(by convention \texttt{.vspec}) is created to store simulation outputs and intermediate files.
+
+The second step is initiated by calling the \texttt{ObservationModel.build\_planet()} method. This is where all the interaction with PSG takes place.
+First, your 3D Global Circulation Model (GCM) is uploaded to PSG via the API's \texttt{set} method. Then, PSG is updated with information about the observation
+that does not change with time, such as instrument parameters and system information. Before entering the main loop \vspec{} computes the geometry of the system
+at each epoch, storing it for later. \vspec{} then iterates through each phase, making four calls to the PSG API:
+\begin{enumerate}
+    \item An \texttt{upd} request setting the geometric parameters for this epoch. \\
+    \item An \texttt{all} request to retrieve the combined light spectrum. \\
+    \item A second \texttt{upd} request to set the stellar flux to zero. \\
+    \item A second \texttt{all} request to retrieve the thermal emission of the planet.
+\end{enumerate}
+
+Results from these calls are stored locally in the \texttt{.fits} format.
+
+The last step is to replace the stellar spectra used by PSG with \vspec{}'s stellar model. First, this model is initialized based on the user-passed parameters.
+One consideration made during this step is that a user may want a shorter cadence here than is necessary to resolve temporal features in the planetary spectrum,
+so the geometry is recalculated and the planetary spectrum at each epoch is a linear interpolation of the results from the previous step. After this setup
+\vspec{} enters the main loop, where it computes the composite stellar spectrum based on the stellar model and spectral grid. For each epoch it returns this stellar
+spectrum as seen by the observer, the spectrum as seen by the planet, the reflected spectrum, the planetary thermal spectrum, the total combined spectrum, and the
+total noise spectrum. The data at each epoch is stored in a \texttt{.fits} file.
+
+The final outputs of \vspec{} should be easily read using Astropy's \texttt{QTable} object, but we have also included a class \texttt{PhaseAnalyzer} to automatically
+parse all output files and conveniently access 1D spectra or lightcurves.
+
+\section{Stellar Model}
+\label{sec:star}
+
+The \vspec{} star model is designed modularly to allow
 for both simple and complex behaviors. Currently, it
 is represented by a rectangular grid of points on the stellar surface,
 each assigned an effective temperature. At any given time, the model computes
@@ -121,7 +164,8 @@ photosphere temperature to differentiate it from the temperature of spots, facul
 
 \subsection{Stellar Spectra \label{subsec:spectra}}
 Once the surface coverage is calculated, a composite spectrum is computed from a grid of PHOENIX stellar spectra
-\citep{husser2013} As of \texttt{VSPEC 0.1}, we have spectra between 2300 K and 3900 K, with steps of
+\citep{husser2013}.
+As of \texttt{VSPEC 0.1} \TJ{fix!}, we have spectra between 2300 K and 3900 K, with steps of
 100 K. Each spectrum has $\log{g} = 5$ and solar metalicity.
 The raw spectra span from 0.1 to 20 \micron~ with $5 \times 10^{-6}$ \micron~ steps, however binned
 versions are pre-computed for faster runtimes.
@@ -145,7 +189,7 @@ the spot area as a function of time is
 \end{equation}
 where $A_0$ is the maximum area reached, $t_0$ is the time of the maximum, $\tau$ is the exponential growth rate, and $W$ is the linear decay rate.
 
-{\sc VSPEC} also takes in parameters describing the population of spots, such as the mean of the (lognormal) peak area distribution
+\vspec{} also takes in parameters describing the population of spots, such as the mean of the (lognormal) peak area distribution
 \citep{bogdan1988}, the equilibrium surface coverage, and the distribution style.
 
 \subsection{Faculae \label{subsec:faculae}}
@@ -242,7 +286,7 @@ package \citep{barclay2020} to generate realistic lightcurve shapes and assume a
 {\sc xoflares} uses a flare profile function empirically derived by \citet{davenport2016} to
 describe a flare lightcurve. Temperature, $E$, FWHM, and the peak time together completely describe a flare's multiwavelength lightcurve.
 
-Before simulating an observation, {\sc VSPEC} pre-computes a population of flares based on the frequency-energy relationship from \citet{gao2022}:
+Before simulating an observation, \vspec{} pre-computes a population of flares based on the frequency-energy relationship from \citet{gao2022}:
 \begin{equation} \label{eq:flare_freq}
     \log{(f{\rm [day]})} = \beta + \alpha~\log{(E/{\rm [erg]})}
 \end{equation}
@@ -303,30 +347,30 @@ Global Emission Spectra (GlobES) application to retrieve thermal and reflected s
 
 \subsection{Interfacing through {\sc pypsg}}
 \ref{subsec:pypsg}
-{\sc VSPEC} interfaces with PSG using the {\sc pypsg} package \TJ{link}, which is essentially a Python wrapper for the PSG API system.
+\vspec{} interfaces with PSG using the {\sc pypsg} package \TJ{link}, which is essentially a Python wrapper for the PSG API system.
 
 \TJ{Write much more}
 
 \subsection{3D Planet models}
-{\sc VSPEC} allows the user to upload any desired GCM. However, for questions that focus on detectability,
+\vspec{} allows the user to upload any desired GCM. However, for questions that focus on detectability,
 the specific physics of the GCM are less important than properties like day/night temperature, surface pressure, or
-the major absorbers in the atmosphere. To simplify these studies, {\sc VSPEC} has a built-in GCM that takes in just a
+the major absorbers in the atmosphere. To simplify these studies, \vspec{} has a built-in GCM that takes in just a
 few parameters and produces a simple-yet-robust exoplanet climate. Simplicity allows the user to know everything about
 the model and reduce surprises, but its basis in thermodynamics and robust energy balance make this model fit for publication-level science \TJ{is this really true? probably not}.
 
-The {\sc VSPEC} GCM centers around a 2D temperature map of the planet's surface. Based on \citet{cowan2011}, this map
+The \vspec{} GCM centers around a 2D temperature map of the planet's surface. Based on \citet{cowan2011}, this map
 is constructed completely given the incident flux from the star (parameterized by the host \teff and radius
 and the planet's semimajor axis and Bond albedo) and the unitless thermal redistribution efficiency $\epsilon$.
 This efficiency is 0 for a planet that reradiates instantly and $\gg 1$ for an atmosphere that efficiently redistributes heat to its night side.
 Figure \ref{fig:thermal_inertia} shows a temperature map example for an Earth-like planet with $\epsilon = 2\pi$.
-These temperature maps are validated by the energy balance of the planet; {\sc VSPEC} computes the incident and emergent
+These temperature maps are validated by the energy balance of the planet; \vspec{} computes the incident and emergent
 flux across the planet and asserts that they agree.
 
 \begin{figure}
     \centering
     \includegraphics[width=0.5\textwidth]{figures/cowan_gcm.pdf}
     \caption{
-        Example of a surface temperature map created by {\sc VSPEC}. The solar flux at Earth,
+        Example of a surface temperature map created by \vspec{}. The solar flux at Earth,
         a Bond albedo of 0.3, and $\epsilon = 2\pi$ were used in this case.
         Notice that the hottest point is offset from the sub-stellar point due to thermal inertia.
     }
@@ -373,7 +417,7 @@ Whenever possible, we draw parameter values from \citet{moran2023} and the NExSc
 We use the JWST NIRSpec/G395H instrument setup but set $R=200$ to account for the resolution of the reduction.
 Additionally we observe for 3.53 hours with an 8 minute cadence. Mid-transit is reached exactly halfway through the observation.
 
-We will do three \texttt{VSPEC} simulations:
+We will do three \vspec{} simulations:
 \begin{enumerate}
     \item Bare rock, no spots.
     \item 1 bar \ce{H2O} atmosphere, no spots.
@@ -404,15 +448,15 @@ the planet we might see similar features inverted to mimic emission.
 \subsection{Phase Curve}
 Analysis of JWST MIRI-LRS phase curves of GJ 1214b by \citet{kempton2023} did not consider stellar
 contamination because of the slow rotation rate of the host star \citep[approximately 1/80$^{\text{th}}$ the orbital frequency,][]{cloutier2021}.
-In this example we use {\sc VSPEC} to demonstrate that this is a reasonable assumption.
+In this example we use \vspec{} to demonstrate that this is a reasonable assumption.
 
-We initialize {\sc VSPEC} to run a 41.0 hour observation with a cadence of 15 minutes. We use stellar and planetary parameters
+We initialize \vspec{} to run a 41.0 hour observation with a cadence of 15 minutes. We use stellar and planetary parameters
 from the NExScI Exoplanet Archive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/GJ1214b}}.
 The GCM used has a thermal inertia of $\epsilon = 6$ and a 1 bar \ce{CO2} atmosphere.
 
 We initialized two stellar models: one with nothing more than a 3250 K surface, and another with 20\% coverage by 2700 K spots.
 
-After running the {\sc VSPEC} simulations, we bin into 0.5 $\mu m$ wavelength channels and normalize each channel to the two eclipses.
+After running the \vspec{} simulations, we bin into 0.5 $\mu m$ wavelength channels and normalize each channel to the two eclipses.
 We assume the star behaves linearly between eclipse measurements and attribute any deviation to the planet.
 
 \begin{figure}
@@ -434,10 +478,10 @@ stellar contamination in other exoplanetary systems in order to judge fitness as
 \subsection{MIRECLE Phase Curve}
 In this example we will look at the best-case target for the Mid-IR Exoplanet CLimate Explorer \citep[MIRECLE,][]{mandell2022}
 mission concept: Proxima Centauri b with no stellar variability. We will instead examine the expected noise produced by this observation
-and assess the detectability of the planet in a single orbit. {\sc VSPEC} uses the noise models built into PSG, allowing native support for
+and assess the detectability of the planet in a single orbit. \vspec{} uses the noise models built into PSG, allowing native support for
 noise due to the instrument, source, and astrophysical background.
 
-We use \texttt{VSPEC}'s built-in MIRECLE instrument template, which includes a 2 m aperture and observes from 1-18 $\mu m$ with $R=50$.
+We use \vspec{}'s built-in MIRECLE instrument template, which includes a 2 m aperture and observes from 1-18 $\mu m$ with $R=50$.
 We draw stellar and bulk planetary parameters from the NExScI Exoplanet Archive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/proxima\%20cen}}
 and assume $i=85^\circ$ and Earth density. The GCM we use has a Bond albedo of 0.3, $\epsilon=1.5$, $P_{\rm surf} = 1 \text{bar}$ and a 100 ppm \ce{CO2} atmosphere with a \ce{N2} background.
 We ran the simulation for one orbit with an 24 hour cadence. Because this is a best-case scenario, we assumed perfect knowledge of the stellar spectrum.

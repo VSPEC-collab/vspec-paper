@@ -176,8 +176,8 @@ data_spotted = PhaseAnalyzer(model_spotted.directories['all_model'])
 data_quiet = PhaseAnalyzer(model_quiet.directories['all_model'])
 flux_unit = u.Unit('W m-2 um-1')
 def get_star(data:PhaseAnalyzer):
-    i_eclipse1 = np.argmin(data.lightcurve('total',(0,-1))[:data.N_images//4])
-    i_eclipse2 = np.argmin(data.lightcurve('total',(0,-1))[3*data.N_images//4:]) + 3*data.N_images//4
+    i_eclipse1 = np.argmin(data.lightcurve('total',(0,-1))[:data.n_images//4])
+    i_eclipse2 = np.argmin(data.lightcurve('total',(0,-1))[3*data.n_images//4:]) + 3*data.n_images//4
     time = (data.time-data.time[0]).to_value(u.hr)
     star_spec1 = data.spectrum('total',i_eclipse1).to_value(flux_unit)
     star_spec2 = data.spectrum('total',i_eclipse2).to_value(flux_unit)

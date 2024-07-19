@@ -35,8 +35,8 @@ ax2 = fig.add_subplot(2,1,2)
 CFG_PATH = Path(__file__).parent / 'spot_lightcurve.yaml'
 
 model = ObservationModel.from_yaml(CFG_PATH)
-model.build_star()
-model.warm_up_star(facula_warmup_time=10*u.hr)
+model._build_star()
+model._warm_up_star(facula_warmup_time=10*u.hr)
 
 
 

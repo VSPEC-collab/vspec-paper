@@ -29,6 +29,7 @@ observation = params.ObservationParameters(
 psg_params = params.psgParameters(
     gcm_binning=200,
     phase_binning=1,
+    use_continuum_stellar=True,
     nmax=0,
     lmax=0,
     continuum=['Rayleigh', 'Refraction', 'CIA_all'],

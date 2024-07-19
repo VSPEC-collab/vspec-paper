@@ -32,6 +32,7 @@ observation = params.ObservationParameters(
 # PSG
 psg_params = params.psgParameters(
     use_molecular_signatures=True,
+    use_continuum_stellar=True,
     gcm_binning=200,
     phase_binning=1,
     nmax=0,

@@ -2,6 +2,7 @@
 \documentclass[twocolumn]{aastex631}
 \usepackage{showyourwork}
 \usepackage[version=4]{mhchem}
+\usepackage{listings}
 
 
 \newcommand{\teff}{$T_{\rm eff}$}
@@ -104,39 +105,136 @@ its value to the exoplanet community. Finally, in Section \ref{sec:conclusion} w
 \section{Using \vspec{}}
 \label{sec:vspec}
 
-The flow of \vspec{}'s code is broken into three parts:
-\begin{enumerate}
-    \item Read in configuration \\
-    \item Compute planetary spectra \\
-    \item Compute stellar spectra
-\end{enumerate}
+The flow of \vspec{}'s code is broken into three parts: i) read in the configuration, ii) compute planetary spectra, and iii) compute stellar spectra.
+\subsection{Configuring \vspec{}}
+\label{subsec:config}
 
-The main object that a user interacts with is the \texttt{ObservationModel}. This object can be initialized by passing it either a YAML file containing
-all of the simulation information, or a \texttt{InternalParameters} object encoded with the same information. Upon initialization a local working directory
+\vspec{} configurations are designed to minimize human errors by providing two equivalent formats. The first, a file written in YAML, is optimized for
+human readability. For example, the \texttt{system} section, which describes the relationship between the observed planetary system and the observer, could
+be written:
+\begin{lstlisting}[label={ls:yaml}]
+system:
+    distance: 12.4 pc
+    inclination: 89.7 deg
+    phase_of_pariasteron: 0 deg
+\end{lstlisting}
+Note that the units of each of these parameters is included in a human-readable way. Internally, \vspec{} casts each of these parameters to an Astropy
+\texttt{Quantity} instance, so that the user can input any desired value and unit combination so long as the physical type is correct -- i.e. it would be
+equivalent to write \texttt{3.83e17 m} as the value for the \texttt{distance} parameter.
+
+The second input method available is to directly initialize the Python object that \vspec{} uses internally to store its model parameters.
+The top-level object, \texttt{InternalParameters}, is structured to mirror the YAML input file, with one argument per YAML section. The
+parameters in Listing \ref{ls:yaml} would be written:
+\begin{lstlisting}[language=Python]
+from astropy import units as u
+from VSPEC.params import *
+params = InternalParameters(
+    ... # Other arguments
+    system=SystemParameters(
+        distance=12.4*u.pc,
+        inclination=89.7*u.deg,
+        phase_of_pariasteron=0*u.deg
+    )
+)
+\end{lstlisting}
+This is convenient for producing configurations programically, for example for producing a grid of model phase curves.
+
+However the user decides to provide model parameters, they are read into the main \vspec{} object: the \texttt{ObservationModel}.
+This is the class that runs the model and handles files. Upon initialization a local working directory
 (by convention \texttt{.vspec}) is created to store simulation outputs and intermediate files.
 
-The second step is initiated by calling the \texttt{ObservationModel.build\_planet()} method. This is where all the interaction with PSG takes place.
-First, your 3D Global Circulation Model (GCM) is uploaded to PSG via the API's \texttt{set} method. Then, PSG is updated with information about the observation
-that does not change with time, such as instrument parameters and system information. Before entering the main loop \vspec{} computes the geometry of the system
-at each epoch, storing it for later. \vspec{} then iterates through each phase, making four calls to the PSG API:
-\begin{enumerate}
-    \item An \texttt{upd} request setting the geometric parameters for this epoch. \\
-    \item An \texttt{all} request to retrieve the combined light spectrum. \\
-    \item A second \texttt{upd} request to set the stellar flux to zero. \\
-    \item A second \texttt{all} request to retrieve the thermal emission of the planet.
-\end{enumerate}
+\subsection{Planetary Phase Curve}
+\label{subsec:phase-curve}
+\vspec{} generates a phase curve though a series of API calls to the Planetary Spectrum Generator \citep[PSG][]{villanueva2018}, using
+\texttt{pypsg} (see Section \ref{sec:pypsg}) to interface with the API. Initially, configurations are sent that give PSG information about
+the system that does not change with time -- that includes the 3D Global Circulation Model (GCM) and instrument parameters. \vspec{} then enters
+the main loop, iterating through each observation epoch and making a pair of API calls: one to get a combined light spectrum and one to get the thermal flux only.
+Results from PSG in each epoch are stored locally in the \texttt{.fits} format. 
 
-Results from these calls are stored locally in the \texttt{.fits} format.
+\subsubsection{Phase Sampling}
+Making API calls to PSG can be computationally expensive, especially when trying to resolve small structures in the climate model. In order to reduce unnecessary
+calls to PSG the temporal sampling of the planetary spectrum in independent of the stellar model/output sampling. When computing the planetary flux in the output files
+the raw PSG output is interpolated and averaged over the integration using the trapazoid rule. By default one spectrum is computed at each interface separating integrations.
 
-The last step is to replace the stellar spectra used by PSG with \vspec{}'s stellar model. First, this model is initialized based on the user-passed parameters.
-One consideration made during this step is that a user may want a shorter cadence here than is necessary to resolve temporal features in the planetary spectrum,
-so the geometry is recalculated and the planetary spectrum at each epoch is a linear interpolation of the results from the previous step. After this setup
-\vspec{} enters the main loop, where it computes the composite stellar spectrum based on the stellar model and spectral grid. For each epoch it returns this stellar
-spectrum as seen by the observer, the spectrum as seen by the planet, the reflected spectrum, the planetary thermal spectrum, the total combined spectrum, and the
-total noise spectrum. The data at each epoch is stored in a \texttt{.fits} file.
+\subsection{Stellar Lightcurve}
 
+The last step is to replace the stellar spectra used by PSG with \vspec{}'s stellar model. In this step \vspec{} acts as a bridge between
+the stellar surface model \texttt{vspec-vsm} (which models spatial changes to the star with time, see Section \ref{sec:star}) and a grid of
+pre-computed stellar spectra (see Section \ref{sec:gridpolator}). The star is initialized and allowed to evolve for a user-specified amount of time
+in order for spots and faculae to approach growth-decay equilibrium (this is also called the ``burn in'' phase). The star is then evolved at the output cadence,
+at each epoch generating a set of key-value pairs that describe the surface temperature and coverage fractions of the portion of the stellar disk visible to the observer.
+These \teff\ s and coverage fractions are fed into GridPolator to produce composite stellar spectra.
+
+\subsubsection{Reflected light}
+\vspec{} also produces a composite spectrum of the
+portion of the star visible to the planet to accurately incorporate the variable star into the reflected light spectrum. To compute the total reflected light
+in the output files \vspec{} first divides the reflected light flux from PSG by the PSG stellar model to obtain the apparent albedo. This albedo is then multiplied
+by the composite spectrum (facing the planet) to obtain total reflected light flux.
+
+\subsubsection{Noise}
+Alongside the planetary radiance files PSG returns a file giving the noise profile for each epoch broken down by source. We assume that the total noise is the
+quadrature sum of its constituent parts and that the \texttt{source} column (i.e. photon noise) is the only one effected by replacing one stellar spectrum with the other.
+This means the photon noise can be calculated:
+\begin{equation}
+    N_{\rm photon} = N_{\rm photon,~PSG} \sqrt{\frac{F_{*,\rm ~VSPEC}}{F_{*,\rm ~PSG}}}
+\end{equation}
+where $F_*$ is the stellar flux. The total noise associated with the integration is then
+\begin{equation}
+    N_{\rm tot} = \sqrt{
+        N_{\rm photon}^2 + N_{\rm detector}^2 + N_{\rm telescope}^2 + N_{\rm background}
+    }
+\end{equation}
+
+\subsubsection{Transit and Eclipse}
+Users must be careful when using \vspec{} to simulate transit and eclipse measurements because of the vast timescale differences between those events
+and the typical phase variations of the planet -- a sparsely sampled phase curve that happens to include one epoch of transit will not describe that lightcurve accurately
+because the interpolator knows no better than to assume a linear interpolation scheme. It is recommended that users use a high cadence for observations of transits
+and eclipses so that each event will be sampled by more than one point.
+
+In the case of a transiting geometry \vspec{} computes the spectrum of the occulted portion of the star in order to properly simulate the
+transit light source effect \citep[TLS][]{rackham2018}. This spectrum is the flux blocked by the planet in the case that it is a bare rock (i.e. a flat
+transmission spectrum). The effect of atmospheric transmission is added by comparing the PSG-computed effective radius to a purely geometric
+calculation of a bare-rock transit depth. That is
+\begin{equation}
+    F_{\lambda} = F_{{\rm rock}, \lambda}\, F_{{\rm PSG,} \lambda} \,\left (\frac{R_*}{R_p} \right )^2
+\end{equation}
+where $F_\lambda$ is the flux of the variable star surface occulted by the planet with the atmosphere considered. $F_{{\rm rock}, \lambda}$ is the
+flux of the surface occulted by a bare-rock with the planet's radius, $F_{{\rm PSG,} \lambda}$ is the flux computed by PSG to be lost
+due to occultation and transmission, and $R_*$ and $R_p$ are the stellar and planetary radii, respectively.
+
+In the case of a total eclipse of the planet the thermal and reflected spectra are set to zero flux. However, in the case of a partial eclipse,
+\vspec{} computes the fraction of the planet that is visible to the observer and reduces both thermal and reflected spectra accordingly. In this case
+\vspec{} treats the planet homogeneously, however future work could utilize PSG/GlobES's ability to return a hypercube of spatially resolved
+spectra in order to construct planetary spectra only from regions of the planet that are not eclipsed.
+
+\subsection{Analysis Tools}
 The final outputs of \vspec{} should be easily read using Astropy's \texttt{QTable} object, but we have also included a class \texttt{PhaseAnalyzer} to automatically
-parse all output files and conveniently access 1D spectra or lightcurves.
+parse all output files and conveniently access 1D spectra or lightcurves. \TJ{Is it worth talking about this?}
+
+\section{Interfacing with the Planetary Spectrum Generator via \texttt{pypsg}}
+\label{sec:pypsg}
+
+PSG\footnote{\url{https://psg.gsfc.nasa.gov/}} \citep{villanueva2018} is a powerful radiative transfer tool that is ubiquitous in the exoplanet and solar system atmosphere fields.
+Either though its web graphical interface, its public API, or the local version available through Docker, PSG allows users to simulate observations of planets, comets, and
+moons with a variety of geometries and realistic noise models \TJ{probably someone like Geronimo should write this part}.
+
+During development of \vspec{} it became clear that a Python interface for the PSG API system would be generally useful to planetary scientists and astronomers, and
+so \vspec{}'s own interface was spun off into a stand-alone library: \texttt{pypsg}.
+
+\texttt{pypsg} draws inspiration from object-relational mapping in frameworks such as Django to encode a PSG configuration file as a native Python object.
+Fields of a \texttt{pypsg} data model represent one or more lines of a configuration file, and the two representations are interchangable without loss of information.
+
+Upon creation of this configuration as a \texttt{PyConfig} object, a user can create an \texttt{APICall} instance which handles sending a request to PSG via Python's
+\texttt{requests} package. This dedicated caller is important in that it reads a user's API key from a known location on disk, removing the possibility that the key
+could be committed to a public repository.
+
+\subsection{GlobES}
+\label{subsec:globes}
+
+A powerful feature of \texttt{pypsg} is that it provides a universal interface for 3D atmosphere models and PSG's Global Emission Spectra (GlobES) application.
+GlobES expects 3D data to be presented in a binary data format, and converting a model to this format is non-trivial. \texttt{pypsg}'s \texttt{PyGCM} class provides
+a native Python representation of GlobES input, and includes built-in methods for converting popular climate models (e.g. ExoCAM, WACCM \TJ{full names and ref?}) to
+the correct format.
 
 \section{Stellar Model}
 \label{sec:star}

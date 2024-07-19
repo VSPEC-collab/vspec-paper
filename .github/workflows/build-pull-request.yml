@@ -20,13 +20,11 @@ jobs:
           python-version: 3.9
       
       - name: Fix dependencies
-        env:
-          PSG_API_KEY: ${{ secrets.PSG_API_KEY }}
         run: |
           conda install -y pip
           pip install pulp==2.7.0
           pip install pypsg
-          python3 -c "import pypsg; pypsg.settings.save_settings(api_key='${{ PSG_API_KEY }}')"
+          python3 -c "import pypsg; pypsg.settings.save_settings(api_key='${{ secrets.PSG_API_KEY }}')"
 
       - name: Build the article PDF
         id: build

@@ -194,37 +194,29 @@ could be committed to a public repository.
 A powerful feature of \texttt{pypsg} is that it provides a universal interface for 3D atmosphere models and PSG's Global Emission Spectra (GlobES) application.
 GlobES expects 3D data to be presented in a binary data format, and converting a model to this format is non-trivial. \texttt{pypsg}'s \texttt{PyGCM} class provides a native Python representation of GlobES input, and includes built-in methods for converting popular climate models (e.g. ExoCAM, WACCM \TJ{full names and ref?}) to the correct format.
 
-\section{Stellar Model}
+\section{Stellar Variability Model}
 \label{sec:star}
 
-The \vspec{} star model is designed modularly to allow
-for both simple and complex behaviors. Currently, it
-is represented by a rectangular grid of points on the stellar surface,
-each assigned an effective temperature. At any given time, the model computes
-the surface coverage fractions of each temperature visible to the observer, accounting for the
-spherical geometry, limb darkening, and any occultation by a transiting planet.
+The \vspec{} stellar model is designed modularly to allow for both simple and complex behaviors. The model is available as the Python package \texttt{vspec-vsm} \TJ{(VSPEC Variable Star Model)}. It is spectral-model agnostic, meaning that it relies on another package (GridPolator, see Section \ref{sec:gridpolator}) to compute the actual variable spectra. Instead, the surface model takes a pair of latitude and longitude points as input and returns a dictionary $\{ T_{\rm eff} : f_{T_{\rm eff}} \}$ where the keys \teff~ are the effective temperatures of each surface component and the values $f_{T_{\rm eff}}$ are the fraction of the visible stellar disk with that effective temperature.
 
-The attributes of the \texttt{Star} class describe the bulk properties of the star, including radius,
-period, and the effective temperature of quiet photosphere. Herein we refer to this temperature as the
-photosphere temperature to differentiate it from the temperature of spots, faculae, or other sources of variability.
+The main model class is the \texttt{Star} object, which describes bulk properties like radius, nominal \teff, and limb darkening parameters, in addition to acting as 
+a container for objects representing sources of variability.
+
+\subsection{Stellar Surface Grid}
+Sources of variability that exist as major structures on the stellar surface (i.e. spots and faculae) are encoded as deviations from the nominal effective temperature on a grid of points representing the stellar surface. Each time the fractions of each surface component are calculated, the grid is initialized with constant \teff. The code then iterates through each spot and facula, replacing portions of the grid with the effective temperatures that make up each structure.
+
+The simplest grid to build is one that is rectangular in latitude and longitude, and in which the area that each point represents decreases towards the poles. However, this can lead to unnecessary spatial oversampling at the poles, and may lead to poor resolution at the equator to keep the total number of points from being excessively high. To mitigate these problems \texttt{vspec-vsm} supports a ``grid'' generated using a Fibbonacci spiral to create a near-isotropic distribution of points. This is especially useful when simulating transits, giving optimal sampling at the stellar equator. It is also useful for resolving small structures on the surface, as the number of points needed for a given minimum resolution are greatly reduced.
+
 
 \begin{figure}
     \centering
         \includegraphics[width=0.5\textwidth]{figures/surface_map_and_lc.pdf}
     \script{surface_map_and_lc.py}
-    \caption{{\bf Top}: The surface map of a star with spots and faculae during a transit.
-    The large circles are spots. Faculae display their 3D structure, as the hot wall is more prevalent near the limbs.
+    \caption{{\bf Top}: The surface map of a star with spots during a transit.
+    The large elipses are spots, while the transiting planet occults a portion of the disk represented by the black circle.
     {\bf Bottom}: An example lightcurve of a spotted star.}
     \label{fig:surface_map}
 \end{figure}
-
-\subsection{Stellar Spectra \label{subsec:spectra}}
-Once the surface coverage is calculated, a composite spectrum is computed from a grid of PHOENIX stellar spectra
-\citep{husser2013}.
-As of \texttt{VSPEC 0.1} \TJ{fix!}, we have spectra between 2300 K and 3900 K, with steps of
-100 K. Each spectrum has $\log{g} = 5$ and solar metalicity.
-The raw spectra span from 0.1 to 20 \micron~ with $5 \times 10^{-6}$ \micron~ steps, however binned
-versions are pre-computed for faster runtimes.
 
 \subsection{Spots \label{subsec:spots}}
 Our star spot model is nearly entirely based on observations of the sun. Sun spots can be resolved and are well-studied,
@@ -232,7 +224,7 @@ whereas spots on other stars (e.g., M dwarfs) can only be observed indirectly. W
 sun spots but with parameterized values for spot temperature and lifetime that can be matched to observations of other stellar types and ages.
 
 
-On the Sun, spots have two regions: the dark, central umbra and the lighter, surrounding penumbra. A detailed review of sunspot behavior,
+On the Sun, spots have two regions shown if Figure \ref{fig:surface_map}: the dark, central umbra and the lighter, surrounding penumbra. A detailed review of sunspot behavior,
 including sizes and lifetimes, is \citet{solanki2003}, however the specific solar values are not relevant to this description. However,
 the spot area as a function of time is
 \begin{equation}
@@ -245,15 +237,27 @@ the spot area as a function of time is
 \end{equation}
 where $A_0$ is the maximum area reached, $t_0$ is the time of the maximum, $\tau$ is the exponential growth rate, and $W$ is the linear decay rate.
 
-\vspec{} also takes in parameters describing the population of spots, such as the mean of the (lognormal) peak area distribution
-\citep{bogdan1988}, the equilibrium surface coverage, and the distribution style.
+In addition to modeling the variability produced by a population of spots, \texttt{vspec-vsm} contains utilities to produce those populations given some description.
+These parameters include the average spot area \citep[lognormally distributed, ][]{bogdan1988}, \teff, growth and decay rates, and the method for distributing spots on the surface. These \texttt{SpotGenerator} objects are responsible for evolving the spot population as the star ages. The number of spots created in some interval $\Delta t$ is:
+\begin{equation}
+    N(\Delta t) = \frac{4 \pi R_*^2 f_{\rm spot}}{A_{\rm mean}} \frac{\Delta t}{T}
+\end{equation}
+where $R_*$ is the stellar radius, $f_{\rm spot}$ is the fraction of the surface covered by spots in growth-decay equilibrium, $A_{\rm mean}$ is the lifetime-averaged mean spot area, and $T$ is the spot lifetime, defined as:
+\begin{equation}
+    T = \frac{A_0}{W} - \frac{1}{\tau} \ln{\left (\frac{A_{\rm min}}{A_0}\right )}
+\end{equation}
+where $A_{\rm min}$ is the area given to each spot when it is initialized.
+
+There are also two modes to distribute spots on the star's surface. The first distributes them isotropically. The second, modeled after analysis of spots on the Sun by \citet{mandal2017}, concentrates the spot latitude around $\pm 15^{\circ}$.
+
+
 
 \subsection{Faculae \label{subsec:faculae}}
 Faculae are magnetically-generated regions of the solar surface that usually appear as bright points near the limb; we employ the ``hot wall''
 model \citep{spruit1976} where faculae are described as three-dimensional pores in the stellar surface with a hot, bright wall, and a
 cool, dark floor, as shown in Figure \ref{fig:fac_struct}.
 
-Their three-dimensional structure causes faculae to behave differently depending on their angle from disk-center. Close to the limb,
+Their three-dimensional structure causes faculae's observational properties to change depending on their angle from disk-center. Close to the limb,
 the hot wall is visible to the observer, and faculae appear as bright points. Near the center, however, the cool floor is exposed and
 faculae appear dark. To consider this effect in the faculae lightcurve, we compute the fraction of the facula's normalized area -- the
 area on the disk it would occupy as a flat spot -- that is occupied by each the hot wall and cool floor. This is done via numerical integral
@@ -284,7 +288,7 @@ for facula radius $R$, depth $Z_w$, and angle from disk-center $\alpha$. $r$ in 
 is defined as the distance from the center of the facula along the radial line connecting the facula center to the
 disk center. $\alpha_{\rm crit}$ is the value of alpha at which the floor is no longer visible and is defined to be $\arctan{\frac{2\sqrt{R^2-r^2}}{Z_w}}$.
 
-According to \citet{1997ApJ...484..479T}, faculae temperatures (of both the floor and wall) are dependent on the facula radius,
+According to \citet{topka1997}, faculae temperatures (of both the floor and wall) are dependent on the facula radius,
 while depth appears to be constant. They also find that the smallest faculae have no visible floor, and that even at disk center they
 appear as bright points. We parameterize the floor temperature to be
 \begin{equation}
@@ -337,14 +341,18 @@ for each new facula, $\mu$ is randomly drawn and determines both the faclue life
 \end{figure}
 
 \subsection{Flares \label{subsec:flares}}
-Flares are an important source of stellar variability on short timescales. We use the {\sc xoflares}
-package \citep{barclay2020} to generate realistic lightcurve shapes and assume a blackbody spectrum.
-{\sc xoflares} uses a flare profile function empirically derived by \citet{davenport2016} to
-describe a flare lightcurve. Temperature, $E$, FWHM, and the peak time together completely describe a flare's multiwavelength lightcurve.
+Flares are an important source of stellar variability on short timescales. \texttt{vspec-vsm}'s flare lightcurve model is based on the \texttt{xoflares} package \citep{barclay2020}, which itself is based on empirically derived lightcurve shapes from \citet{davenport2016}. However, \texttt{xoflares} is designed to fit lightcurves in a single spectral band, so we add additional parameters to extend it to a multiwavelength lightcurve. We completely describe a flare using its temperature, total energy, full width at half maximum (FWHM), and the time of its peak. We model a flare as a hot, optically thin region above the photosphere that produces a blackbody spectrum. In this model, the temperature is constant, and the sharp rise and fall see in the lightcurve is caused by the region's rapidly changing area. This simplification allows the total flare energy $E$ to be used as a normalization factor:
+\begin{equation}
+    \int_{-\infty}^{\infty}A\,dt = \frac{E}{\sigma T^4}
+\end{equation}
+where $A$ is the time-dependent area of the flare region, $T$ is the constant flare temperature, and $\sigma$ is the Stefan-Boltzmann constant. This allows flare lightcurves to be produced with a fixed bolometric luminosity.
 
-Before simulating an observation, \vspec{} pre-computes a population of flares based on the frequency-energy relationship from \citet{gao2022}:
+Because the temperature is fixed, the relevant quantity for modeling the flux of a flare in a given integration is the integrated time-area $\int A\,dt$. These quantities are computed numerically and fed to \vspec{} along with $T$ to produce spectra with the appropriate absolute flux.
+
+
+Before simulating an observation, \vspec{} asks \texttt{vspec-vsm} to pre-compute a population of flares based on the frequency-energy relationship from \citet{gao2022}:
 \begin{equation} \label{eq:flare_freq}
-    \log{(f{\rm [day]})} = \beta + \alpha~\log{(E/{\rm [erg]})}
+    \log{(f/{\rm [day]})} = \beta + \alpha~\log{(E/{\rm [erg]})}
 \end{equation}
 
 Where $f$ is the frequency of flares with energies $\ge E$.
@@ -394,20 +402,18 @@ The GP uses a custom kernel function based on a power spectrum \citep{anderson19
         }
     \script{granule_lc.py}
     \label{fig:gran_lc}
-a\end{figure}
+\end{figure}
 
-\section{Planet Model \label{sec:pl_model}}
-Our model uses the Planetary Spectrum Generator\footnote{\href{https://psg.gsfc.nasa.gov/}{https://psg.gsfc.nasa.gov/}}
-\citep[PSG,][]{villanueva2018} to calculate the planetary spectrum. We upload a 3D Global Circulation Model (GCM) to PSG's
-Global Emission Spectra (GlobES) application to retrieve thermal and reflected spectra for various points in the planet's phase curve. \TJ{cite Vincent's paper}
+\subsection{Transits}
+In the case of a transiting geometry, \texttt{vspec-vsm} is responsible for computing the properties of the portion of the stellar disk that is occulted. It does this by first projecting both the transiting planet and the visible part of the surface orthographically as they would be viewed by a distant observer. It then selects all the points that are near enough to the transit to be occulted. The code then iterates through each of those points and computes the fraction of it covered by the occulting circle using a 2D numerical integral.
 
-\subsection{Interfacing through {\sc pypsg}}
-\ref{subsec:pypsg}
-\vspec{} interfaces with PSG using the {\sc pypsg} package \TJ{link}, which is essentially a Python wrapper for the PSG API system.
+\section{Stellar Spectral Grids}
+\label{sec:gridpolator}
 
-\TJ{Write much more}
+\TJ{TODO}
 
-\subsection{3D Planet models}
+
+\section{Simple climate models}
 \vspec{} allows the user to upload any desired GCM. However, for questions that focus on detectability,
 the specific physics of the GCM are less important than properties like day/night temperature, surface pressure, or
 the major absorbers in the atmosphere. To simplify these studies, \vspec{} has a built-in GCM that takes in just a

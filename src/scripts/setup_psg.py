@@ -6,13 +6,18 @@ import os
 
 import pypsg
 
+import paths
+
+outfile = paths.output / 'psg_status.txt'
+
 def setup_psg():
     try:
         key = os.environ['PSG_API_KEY']
         pypsg.settings.save_settings(api_key=key)
-        print('API Key was successfully set.')
+        s = 'The PSG API key was set from an environment variable.'
 
     except KeyError:
-        print('API Key was not set.')
-        assert pypsg.docker.is_psg_installed()
-        print('PSG is installed.')
+        s = 'No environment variable was found to set the API key.'
+    print(s)
+    with open(outfile,'wt', encoding='utf-8') as f:
+        f.write(s)

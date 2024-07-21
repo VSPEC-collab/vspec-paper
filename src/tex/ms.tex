@@ -72,23 +72,12 @@ Greenbelt, MD 20771, USA}
 \section{Introduction}
 \label{sec:intro}
 
-In the era of high-sensitivity exoplanet characterization missions such as the James Webb Space Telescope (JWST)
-and the Atmospheric Remote-sensing Infrared Exoplanet Large-survey (ARIEL), spectral analysis of exoplanet atmospheres
-is increasingly sensitive to contamination due to stellar inhomogeneities (e.g. spots, granulation) and stochastic stellar variability (e.g. flares).
+In the era of high-sensitivity transiting exoplanet characterization missions such as the Hubble Space Telescope (HST), the James Webb Space Telescope (JWST) and the future Atmospheric Remote-sensing Infrared Exoplanet Large-survey (ARIEL), spectral analysis of exoplanet atmospheres is increasingly sensitive to contamination due to stellar inhomogeneities (e.g. spots, granulation) and stochastic stellar variability (e.g. flares).  As an example, recent analysis of the JWST/NIRSpec transit of GJ 486b by \citet{moran2023} exposed a degeneracy between atmospheric absorption by water and water-rich spots on the stellar surface, and similar effects were seen in the transit spectrum of LHS 1140b \citet{cadieux2024}. This ``transit light source effect'' \citep[TLS,][see also \citet{apai2018,barclay2021,garcia2022,barclay2023}]{rackham2018} occurs when the region of the stellar surface occulted by the transiting planet is not representative of the disk-integrated spectrum.
 
-Recent analysis of the JWST/NIRSpec transit of GJ 486b by \citet{moran2023} exposed a degeneracy between
-atmospheric absorption by water and water-rich spots on the stellar surface. This ``transit light source effect''
-\citep[TLS,][see also \citet{apai2018,barclay2021,garcia2022,barclay2023}]{rackham2018}
-occurs when the occulted region of the stellar surface is not representative of the disk-integrated spectrum.
-
-Similarly, the Mid-IR Exoplanet CLimate Explorer \citep[MIRECLE,][]{mandell2022} mission concept
-will employ the Planetary Infrared Excess \citep[PIE][]{stevenson2020} technique to extract the planetary
-contribution from combined-light observations. Uncertainties on the stellar spectrum will dominate the analysis if it is not removed appropriately.
+Stellar contamination may also cause errors in the extraction of thermal phase curve spectroscopy if the stellar spectrum changes significantly over the period of the planet's orbit; if the variations are non-linear but only linear interpolation between subsequent secondary eclipses is used to remove the stellar contribution, the results planetary flux measurements will be contaminated. This will be particularly important for observations of planets around more variable stars such as active M-stars or later-type evolved host stars. %the Mid-IR Exoplanet CLimate Explorer \citep[MIRECLE,][]{mandell2022} mission concept will employ the Planetary Infrared Excess \citep[PIE][]{stevenson2020} technique to extract the planetary contribution from combined-light observations. Uncertainties on the stellar spectrum will dominate the analysis if it is not removed appropriately.
 
 To adequately prepare for future observations and future missions it will be necessary to demonstrate a method to mitigate these effects.
-This task requires a flexible tool that combines models of exoplanet atmospheres and stellar variability in a robust way.
-
-In this paper we present \vspec{}: Variable Star PhasE Curve\footnote{\url{https://github.com/VSPEC-collab/VSPEC}},
+This task requires a flexible tool that combines models of exoplanet atmospheres and stellar variability in a robust way. In this paper we present \vspec{}: Variable Star PhasE Curve\footnote{\url{https://github.com/VSPEC-collab/VSPEC}},
 an open-source Python 3 package to simulate observations of exoplanet systems with variable host stars.
 \vspec{} itself is merely an interface that pulls together a variable star surface model \texttt{vspec-vsm}\footnote{\url{https://github.com/VSPEC-collab/vspec-vsm}},
 a stellar spectra grid interpolation code Gridpolator\footnote{\url{https://github.com/VSPEC-collab/GridPolator}}, and a Python interface for
@@ -137,7 +126,7 @@ params = InternalParameters(
     )
 )
 \end{lstlisting}
-This is convenient for producing configurations programically, for example for producing a grid of model phase curves.
+This is convenient for producing configurations programmatically, for example for producing a grid of model phase curves.
 
 However the user decides to provide model parameters, they are read into the main \vspec{} object: the \texttt{ObservationModel}.
 This is the class that runs the model and handles files. Upon initialization a local working directory
@@ -148,33 +137,24 @@ This is the class that runs the model and handles files. Upon initialization a l
 \vspec{} generates a phase curve though a series of API calls to the Planetary Spectrum Generator \citep[PSG][]{villanueva2018}, using
 \texttt{pypsg} (see Section \ref{sec:pypsg}) to interface with the API. Initially, configurations are sent that give PSG information about
 the system that does not change with time -- that includes the 3D Global Circulation Model (GCM) and instrument parameters. \vspec{} then enters
-the main loop, iterating through each observation epoch and making a pair of API calls: one to get a combined light spectrum and one to get the thermal flux only.
+the main loop, iterating through each observation epoch (e.g.integration or combination of integrations) and making a pair of API calls: one to get a combined light spectrum and one to get the thermal flux only.
 Results from PSG in each epoch are stored locally in the \texttt{.fits} format. 
 
 \subsubsection{Phase Sampling}
-Making API calls to PSG can be computationally expensive, especially when trying to resolve small structures in the climate model. In order to reduce unnecessary
-calls to PSG the temporal sampling of the planetary spectrum in independent of the stellar model/output sampling. When computing the planetary flux in the output files
-the raw PSG output is interpolated and averaged over the integration using the trapazoid rule. By default one spectrum is computed at each interface separating integrations.
+Making API calls to PSG can be computationally expensive, especially when trying to resolve small structures in the climate model. In order to reduce unnecessary calls to PSG, the temporal sampling of the planetary spectrum is independent of the stellar model/output sampling. When computing the planetary flux in the output files, the raw PSG output is interpolated and averaged over each time step using the trapezoid integration rule. By default one spectrum is computed with PSG at each interface separating time steps; this eases the calculation of edge effects between steps.
 
 \subsection{Stellar Lightcurve}
 
 The last step is to replace the stellar spectra used by PSG with \vspec{}'s stellar model. In this step \vspec{} acts as a bridge between
 the stellar surface model \texttt{vspec-vsm} (which models spatial changes to the star with time, see Section \ref{sec:star}) and a grid of
-pre-computed stellar spectra (see Section \ref{sec:gridpolator}). The star is initialized and allowed to evolve for a user-specified amount of time
-in order for spots and faculae to approach growth-decay equilibrium (this is also called the ``burn in'' phase). The star is then evolved at the output cadence,
-at each epoch generating a set of key-value pairs that describe the surface temperature and coverage fractions of the portion of the stellar disk visible to the observer.
-These \teff\ s and coverage fractions are fed into GridPolator to produce composite stellar spectra.
+pre-computed stellar spectra (from the GridPolator package; see Section \ref{sec:gridpolator}). The star is initialized and allowed to evolve for a user-specified amount of time in order for spots and faculae to approach growth-decay equilibrium (this is also called the ``burn in'' phase). The star is then evolved at the output cadence, at each epoch generating a set of key-value pairs that describe the surface temperature and coverage fractions of the portion of the stellar disk visible to the observer. These \teff\ s and coverage fractions are fed into GridPolator to produce composite stellar spectra.
 
 \subsubsection{Reflected light}
-\vspec{} also produces a composite spectrum of the
-portion of the star visible to the planet to accurately incorporate the variable star into the reflected light spectrum. To compute the total reflected light
-in the output files \vspec{} first divides the reflected light flux from PSG by the PSG stellar model to obtain the apparent albedo. This albedo is then multiplied
+\vspec{} also produces a composite spectrum of the portion of the star visible to the planet to accurately incorporate the variable star into the reflected light spectrum. To compute the total reflected light in the output files, \vspec{} first divides the reflected light flux from PSG by the PSG stellar model to obtain the apparent albedo (I/F). This albedo is then multiplied
 by the composite spectrum (facing the planet) to obtain total reflected light flux.
 
 \subsubsection{Noise}
-Alongside the planetary radiance files PSG returns a file giving the noise profile for each epoch broken down by source. We assume that the total noise is the
-quadrature sum of its constituent parts and that the \texttt{source} column (i.e. photon noise) is the only one effected by replacing one stellar spectrum with the other.
-This means the photon noise can be calculated:
+Alongside the planetary radiance files, PSG returns a file giving the noise profile for each epoch broken down by source. We assume that the total noise is the quadrature sum of its constituent parts and that the \texttt{source} column (i.e. photon noise) is the only one affected by replacing one stellar spectrum with the other. This means the photon noise can be calculated:
 \begin{equation}
     N_{\rm photon} = N_{\rm photon,~PSG} \sqrt{\frac{F_{*,\rm ~VSPEC}}{F_{*,\rm ~PSG}}}
 \end{equation}
@@ -187,54 +167,32 @@ where $F_*$ is the stellar flux. The total noise associated with the integration
 
 \subsubsection{Transit and Eclipse}
 Users must be careful when using \vspec{} to simulate transit and eclipse measurements because of the vast timescale differences between those events
-and the typical phase variations of the planet -- a sparsely sampled phase curve that happens to include one epoch of transit will not describe that lightcurve accurately
-because the interpolator knows no better than to assume a linear interpolation scheme. It is recommended that users use a high cadence for observations of transits
-and eclipses so that each event will be sampled by more than one point.
+and the typical phase variations of a planet -- a sparsely sampled phase curve that happens to include one epoch of transit will not adequately sample the lightcurve accurately during a transit or eclipse because the interpolator knows no better than to assume a linear interpolation scheme. It is recommended that users use a high cadence for observations of transits and eclipses so that each event will be sampled by more than one point.
 
-In the case of a transiting geometry \vspec{} computes the spectrum of the occulted portion of the star in order to properly simulate the
-transit light source effect \citep[TLS][]{rackham2018}. This spectrum is the flux blocked by the planet in the case that it is a bare rock (i.e. a flat
-transmission spectrum). The effect of atmospheric transmission is added by comparing the PSG-computed effective radius to a purely geometric
-calculation of a bare-rock transit depth. That is
+In the case of a transiting geometry, \vspec{} computes the spectrum of the occulted portion of the star in order to properly simulate the
+transit light source effect \citep[TLS][]{rackham2018}. This spectrum is the flux blocked by the planet in the case that it is a solid occulting circle, and therefore produces a flat transmission spectrum. The effect of atmospheric transmission is added by comparing the PSG-computed effective radius to a purely geometric calculation of such a ``bare-rock" transit depth:
 \begin{equation}
     F_{\lambda} = F_{{\rm rock}, \lambda}\, F_{{\rm PSG,} \lambda} \,\left (\frac{R_*}{R_p} \right )^2
 \end{equation}
 where $F_\lambda$ is the flux of the variable star surface occulted by the planet with the atmosphere considered. $F_{{\rm rock}, \lambda}$ is the
-flux of the surface occulted by a bare-rock with the planet's radius, $F_{{\rm PSG,} \lambda}$ is the flux computed by PSG to be lost
+flux of the surface occulted by a bare rock with the planet's radius, $F_{{\rm PSG,} \lambda}$ is the flux computed by PSG to be lost
 due to occultation and transmission, and $R_*$ and $R_p$ are the stellar and planetary radii, respectively.
 
-In the case of a total eclipse of the planet the thermal and reflected spectra are set to zero flux. However, in the case of a partial eclipse,
-\vspec{} computes the fraction of the planet that is visible to the observer and reduces both thermal and reflected spectra accordingly. In this case
-\vspec{} treats the planet homogeneously, however future work could utilize PSG/GlobES's ability to return a hypercube of spatially resolved
+In the case of a total eclipse of the planet, the planetary thermal and reflected contributions are set to zero flux. However, in the case of a partial eclipse,
+\vspec{} computes the fraction of the planet that is visible to the observer and reduces both thermal and reflected flux accordingly. In this case
+\vspec{} treats the planet homogeneously; however, future work could utilize PSG/GlobES's ability to return a hypercube of spatially resolved
 spectra in order to construct planetary spectra only from regions of the planet that are not eclipsed.
-
-\subsection{Analysis Tools}
-The final outputs of \vspec{} should be easily read using Astropy's \texttt{QTable} object, but we have also included a class \texttt{PhaseAnalyzer} to automatically
-parse all output files and conveniently access 1D spectra or lightcurves. \TJ{Is it worth talking about this?}
 
 \section{Interfacing with the Planetary Spectrum Generator via \texttt{pypsg}}
 \label{sec:pypsg}
 
-PSG\footnote{\url{https://psg.gsfc.nasa.gov/}} \citep{villanueva2018} is a powerful radiative transfer tool that is ubiquitous in the exoplanet and solar system atmosphere fields.
-Either though its web graphical interface, its public API, or the local version available through Docker, PSG allows users to simulate observations of planets, comets, and
-moons with a variety of geometries and realistic noise models \TJ{probably someone like Geronimo should write this part}.
+PSG\footnote{\url{https://psg.gsfc.nasa.gov/}} \citep{villanueva2018} is a powerful radiative transfer tool that is ubiquitous in the exoplanet and solar system atmosphere fields. Either through its web graphical interface, its public API, or the local version available through Docker, PSG allows users to simulate observations of planets, comets, and moons with a variety of geometries and realistic noise models \TJ{probably someone like Geronimo should write this part}.
 
-During development of \vspec{} it became clear that a Python interface for the PSG API system would be generally useful to planetary scientists and astronomers, and
-so \vspec{}'s own interface was spun off into a stand-alone library: \texttt{pypsg}.
-
-\texttt{pypsg} draws inspiration from object-relational mapping in frameworks such as Django to encode a PSG configuration file as a native Python object.
-Fields of a \texttt{pypsg} data model represent one or more lines of a configuration file, and the two representations are interchangable without loss of information.
-
-Upon creation of this configuration as a \texttt{PyConfig} object, a user can create an \texttt{APICall} instance which handles sending a request to PSG via Python's
-\texttt{requests} package. This dedicated caller is important in that it reads a user's API key from a known location on disk, removing the possibility that the key
+\vspec{} uses a Python interface for the PSG API system called \texttt{pypsg}, which is a general stand-alone library built for any Python-based API call to PSG. \texttt{pypsg} draws inspiration from object-relational mapping in frameworks such as Django \TJ{cite} to encode a PSG configuration file as a native Python object.Fields of a \texttt{pypsg} data model represent one or more lines of a configuration file, and the two representations are interchangable without loss of information. Upon creation of this configuration as a \texttt{PyConfig} object, a user can create an \texttt{APICall} instance which handles sending a request to PSG via Python's \texttt{requests} \TJ{cite} package. This dedicated caller is important in that it reads a user's API key from a known location on disk, removing the possibility that the key
 could be committed to a public repository.
 
-\subsection{GlobES}
-\label{subsec:globes}
-
 A powerful feature of \texttt{pypsg} is that it provides a universal interface for 3D atmosphere models and PSG's Global Emission Spectra (GlobES) application.
-GlobES expects 3D data to be presented in a binary data format, and converting a model to this format is non-trivial. \texttt{pypsg}'s \texttt{PyGCM} class provides
-a native Python representation of GlobES input, and includes built-in methods for converting popular climate models (e.g. ExoCAM, WACCM \TJ{full names and ref?}) to
-the correct format.
+GlobES expects 3D data to be presented in a binary data format, and converting a model to this format is non-trivial. \texttt{pypsg}'s \texttt{PyGCM} class provides a native Python representation of GlobES input, and includes built-in methods for converting popular climate models (e.g. ExoCAM, WACCM \TJ{full names and ref?}) to the correct format.
 
 \section{Stellar Model}
 \label{sec:star}

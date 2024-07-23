@@ -118,7 +118,6 @@ quiet_star = params.StarParameters(
     flares=params.FlareParameters.none(),
     granulation=params.GranulationParameters.none(),
     grid_params=(500, 1000),
-    spectral_grid='default'
 )
 
 # Set parameters for simulation
@@ -126,8 +125,11 @@ quiet_star = params.StarParameters(
 internal_params = params.InternalParameters(
     header=params.Header(
         data_path=Path('.vspec/proxcenb'),
-        teff_min=2300*u.K,teff_max=3400*u.K,
-        seed = SEED),
+        seed = SEED,
+        spec_grid=params.VSPECGridParameters(
+            max_teff=3400*u.K,
+            min_teff=2300*u.K,
+        )),
     star = quiet_star,
     psg=psg_params,
     planet=planet_params,

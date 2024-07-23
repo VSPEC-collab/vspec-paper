@@ -173,7 +173,6 @@ star_kwargs = dict(
     flares=params.FlareParameters.none(),
     granulation=params.GranulationParameters.none(),
     grid_params=100000,
-    spectral_grid='default'
 )
 quiet_star = params.StarParameters(
     spots=params.SpotParameters.none(),
@@ -198,8 +197,11 @@ spotted_star = params.StarParameters(
 
 # Set parameters for simulation
 header_kwargs = dict(
-    teff_min=2300*u.K,teff_max=3400*u.K,
-    seed = SEED
+    seed = SEED,
+    spec_grid=params.VSPECGridParameters(
+        max_teff=3400*u.K,
+        min_teff=2300*u.K,
+    )
 )
 internal_params_kwargs = dict(
     system=system_params,

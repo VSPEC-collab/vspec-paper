@@ -1,9 +1,13 @@
 header:
   data_path: spot_lightcurve
-  teff_min: 3200 K
-  teff_max: 3400 K
   desc: This is a VSPEC example.
   seed: 32
+  spec_grid:
+    name: vspec
+    min_teff: 3200 K
+    max_teff: 3400 K
+    impl_bin: rust
+    impl_interp: scipy
 star:
   psg_star_template: M
   teff: 3300 K
@@ -34,7 +38,6 @@ star:
     period: 5 day
     dteff: 200 K
   grid_params: [500,1000]
-  spectral_grid: default
 planet:
   name: Exoplanet
   radius: 1 R_earth

@@ -47,7 +47,7 @@ pl_orbit = 0.05*u.AU
 inclination = 89.8*u.deg
 phase = 180.4*u.deg
 
-model.star.plot_surface(lat0, lon0, ax1, pl_orbit, pl_radius, phase, inclination)
+model.star.plot_surface(lat0, lon0, ax1)
 
 # LC
 

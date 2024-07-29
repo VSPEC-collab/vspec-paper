@@ -212,10 +212,9 @@ The simplest grid to build is one that is rectangular in latitude and longitude,
     \centering
         \includegraphics[width=0.5\textwidth]{figures/surface_map_and_lc.pdf}
     \script{surface_map_and_lc.py}
-    \caption{{\bf Top}: The surface map of a star with spots during a transit.
-    The large ellipses are spots, while the transiting planet occults a portion of the disk represented by the black circle.
-    {\bf Bottom}: An example lightcurve of a spotted star.
-    \TJ{Remove transit and put it in a LD figure}}
+    \caption{{\bf Top}: The surface map of a star with spots. The star has a photospheric temperature of 3300K, a penumbra temperature of 2700K, and an umbra temperature of 2500K.
+    {\bf Bottom}: An example lightcurve of a spotted star. Flux variations are due to varying spot coverage as a function of sub-observer point. Two rotational periods are shown.
+    }
     \label{fig:surface_map}
 \end{figure}
 
@@ -345,9 +344,21 @@ inter-granule surface; the surface coverage of the cool region at any given time
     \label{fig:gran_lc}
 \end{figure}
 
-\subsection{Transits}
-\TJ{Change section to talk about limb darkening and other geometric considerations}
-In the case of a transiting geometry, \texttt{vspec-vsm} is responsible for computing the properties of the portion of the stellar disk that is occulted. It does this by first projecting both the transiting planet and the visible part of the surface orthographically as they would be viewed by a distant observer. It then selects all the points that are near enough to the transit to be occulted. The code then iterates through each of those points and computes the fraction of it covered by the occulting circle using a 2D numerical integral. \TJ{Add a figure to show limb darkening lightcurve. Do a surface map like Fig 1 with a transit, then zoom in to show pixel coverage, then a lightcurve}
+\subsection{Transits \& Limb Darkening}
+
+\begin{figure*}
+    \centering
+    \includegraphics[width=\textwidth]{figures/ld_transit.pdf}
+    \caption{
+        {\bf Right}: Transit lightcurves at 1 ${\rm \mu m}$ for a Lambertian (i.e. no limb darkening) star and one with significant limb darkening \citep[$u_1=0.5,\,u_2=0.15$,][]{espinoza2015}. In each case a 1 $R_e$ planet transits a 1 $R_\odot$ ($T_{\rm eff} = 3000$ K) star with an observation cadence of 1 minute. Scattered points show the observation with simulated noise, considering JWST/NIRSpec G395H binned to a resolving power of 270 and a target distance of 5 pc.
+        {\bf Right}: Stellar surface maps including translucent masks to show limb darkening and transit. The Lambertian star (top) does not exhibit any limb darkening, and its disk has constant surface brightness. However, the limb-darkened star (bottom) is much brighter at disk-center than it is near the limb. The dark circle on the leftmost limb of each star is the region occulted by the planet when it is $0.7^\circ$ from mid-transit.
+    }
+    \script{ld_transit.py}
+    \label{fig:ld_transit}
+\end{figure*}
+
+In the case of a transiting geometry, \texttt{vspec-vsm} is responsible for computing the properties of the portion of the stellar disk that is occulted. It does this by first projecting both the transiting planet and the visible part of the surface orthographically as they would be viewed by a distant observer. It then selects all the points that are near enough to the transit to be occulted. The code then iterates through each of those points and computes the fraction of it covered by the occulting circle using a 2D numerical integral. The weight of each point is determined by the geometric projected area as well as a quadratic limb darkening law \citep[see][]{espinoza2015}. This treatment allows the user to specify two parameters $u_1$ and $u_2$ that describe the flux variation as a function of angle from disk-center. A caveat of this method is that there is no dependence on wavelength. A better treatment would vary the temperature of the stellar model as a function of $\mu$; we simply apply a gray scaling factor to the flux. Figure \ref{fig:ld_transit} compares transit lightcurves for two different sets of limb darkening parameters.
+
 
 \section{Stellar Spectral Grids}
 \label{sec:gridpolator}

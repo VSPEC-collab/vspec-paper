@@ -307,7 +307,7 @@ Flares are an important source of stellar variability on short timescales. \text
 \end{equation}
 where $A$ is the time-dependent area of the flare region, $T$ is the constant flare temperature, and $\sigma$ is the Stefan-Boltzmann constant. This allows flare lightcurves to be produced with a fixed bolometric luminosity. Because the temperature is fixed, the relevant quantity for modeling the flux of a flare in a given integration is the integrated time-area $\int A\,dt$. These quantities are computed numerically and fed to \vspec{} along with $T$ to produce spectra with the appropriate absolute flux.
 
-Before simulating an observation, \vspec{} asks \texttt{vspec-vsm} to pre-compute a population of flares based on a power-law frequency-energy relationship similar to the results of \TJ{what data?} \citep{gao2022}:
+Before simulating an observation, \vspec{} asks \texttt{vspec-vsm} to pre-compute a population of flares based on a power-law frequency-energy relationship based on Kepler and TESS lightcurves \citep{gao2022}:
 \begin{equation} \label{eq:flare_freq}
     \log{(f/{\rm [day]})} = \beta + \alpha~\log{(E/{\rm [erg]})}
 \end{equation}

@@ -335,7 +335,7 @@ inter-granule surface; the surface coverage of the cool region at any given time
     \includegraphics[width=\textwidth]{figures/ld_transit.pdf}
     \caption{
         {\bf Right}: Transit lightcurves at 1 ${\rm \mu m}$ for a Lambertian (i.e. no limb darkening) star and one with significant limb darkening \citep[$u_1=0.5,\,u_2=0.15$,][]{espinoza2015}. In each case a 1 $R_e$ planet transits a 0.12 $R_\odot$ ($T_{\rm eff} = 3000$ K) star with an observation cadence of 1 minute. Scattered points show the observation with simulated noise, considering a single wavelength channel from JWST/NIRSpec G395H binned to a resolving power of 270 and a target distance of 5 pc.
-        {\bf Right}: Stellar surface maps including translucent masks to show limb darkening and transit. The Lambertian star (top) does not exhibit any limb darkening, and its disk has constant surface brightness. However, the limb-darkened star (bottom) is much brighter at disk-center than it is near the limb. The dark circle on the leftmost limb of each star is the region occulted by the planet when it is $0.7^\circ$ from mid-transit.
+        {\bf Left}: Stellar surface maps including translucent masks to show limb darkening and transit. The Lambertian star (top) does not exhibit any limb darkening, and its disk has constant surface brightness. However, the limb-darkened star (bottom) is much brighter at disk-center than it is near the limb. The dark circle on the leftmost limb of each star is the region occulted by the planet when it is $0.7^\circ$ from mid-transit.
     }
     \script{ld_transit.py}
     \label{fig:ld_transit}
@@ -395,14 +395,14 @@ Where $\tilde{T}$ is the dimensionless temperature defined as $T/T_0$, or the te
     \centering
     \includegraphics[width=0.5\textwidth]{figures/cowan_fig1.pdf}
     \caption{
-        Reproduction of \citet{cowan2011} Figure 1 using the methods described in the text. These curves show the dimensionless temperature at the equator of a planet as a function of angle from substellar point $\Phi$ for thermal inertia $\epsilon$. Note that the $\epsilon=0$ curve in the original figure is replaced with $\epsilon=10^{-4}$ (see explanation in the text), and we do not include additional curves for mid-latitudes as in the original figure. As $\epsilon$ increases, heat is moved from the dayside onto the nightside and the temperature maximum shifts away from the substellar point.
+        {\bf Top}: Reproduction of \citet{cowan2011} Figure 1 using the methods described in the text. These curves show the dimensionless temperature at the equator of a planet as a function of angle from substellar point $\Phi$ for thermal inertia $\epsilon$. Note that the $\epsilon=0$ curve in the original figure is replaced with $\epsilon=10^{-4}$ (see explanation in the text), and we do not include additional curves for mid-latitudes as in the original figure. As $\epsilon$ increases, heat is moved from the dayside onto the nightside and the temperature maximum shifts away from the substellar point.
+        {\bf Bottom}: Relative surface temperature as a function of latitude $\lambda$ for varying latitudinal mixing parameter $\alpha$. A value of 1 means the equatorial temperature as computed in the upper panel. Without mixing ($\alpha=0$) heat is concentrated at the Equator. However, as $\alpha$ increases, the equator cools and heat is redistributed towards the poles.
     }
     \script{cowan_fig.py}
     \label{fig:cowan_curves}
 \end{figure}
 
 \subsection{Extending to 3 Dimensions}
-\TJ{lat mixing figure}
 
 The treatment by \citet{cowan2011} includes no mixing in the latitudinal direction, nor a vertical temperature profile; to allow for variations in pressure and inclination, we augment their treatment with several simple approximations for latitudinal and vertical temperature variations. 
 

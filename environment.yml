@@ -5,6 +5,6 @@ dependencies:
       - numpy==1.26.3
       - matplotlib==3.8.3
       - git+https://github.com/VSPEC-collab/VSPEC.git@release/1.0.0
-      - git+https://github.com/VSPEC-collab/vspec-vsm.git@release/0.3.6
+      - git+https://github.com/VSPEC-collab/vspec-vsm.git@main
       - cartopy==0.22.0
       - pandas==2.2.0

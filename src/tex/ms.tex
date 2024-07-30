@@ -334,7 +334,7 @@ inter-granule surface; the surface coverage of the cool region at any given time
     \centering
     \includegraphics[width=\textwidth]{figures/ld_transit.pdf}
     \caption{
-        {\bf Right}: Transit lightcurves at 1 ${\rm \mu m}$ for a Lambertian (i.e. no limb darkening) star and one with significant limb darkening \citep[$u_1=0.5,\,u_2=0.15$,][]{espinoza2015}. In each case a 1 $R_e$ planet transits a 1 $R_\odot$ ($T_{\rm eff} = 3000$ K) star with an observation cadence of 1 minute. Scattered points show the observation with simulated noise, considering JWST/NIRSpec G395H binned to a resolving power of 270 and a target distance of 5 pc.
+        {\bf Right}: Transit lightcurves at 1 ${\rm \mu m}$ for a Lambertian (i.e. no limb darkening) star and one with significant limb darkening \citep[$u_1=0.5,\,u_2=0.15$,][]{espinoza2015}. In each case a 1 $R_e$ planet transits a 0.12 $R_\odot$ ($T_{\rm eff} = 3000$ K) star with an observation cadence of 1 minute. Scattered points show the observation with simulated noise, considering a single wavelength channel from JWST/NIRSpec G395H binned to a resolving power of 270 and a target distance of 5 pc.
         {\bf Right}: Stellar surface maps including translucent masks to show limb darkening and transit. The Lambertian star (top) does not exhibit any limb darkening, and its disk has constant surface brightness. However, the limb-darkened star (bottom) is much brighter at disk-center than it is near the limb. The dark circle on the leftmost limb of each star is the region occulted by the planet when it is $0.7^\circ$ from mid-transit.
     }
     \script{ld_transit.py}
@@ -353,7 +353,7 @@ In the case of a transiting geometry, \texttt{vspec-vsm} is responsible for comp
     \caption{
         Speed comparison between the JAX and SciPy implementations of the GridPolator interpolation backend. Both interpolators use the builtin \vspec{} grid, with \teff ranging from 2800 to 3300K, and wavelengths from 5-12 ${\rm \mu m}$ with $R=100$. SciPy is most efficient for a small number of evaluations, with a constant cost per call. For a large number of evaluations, however, the speed gained via JAX's JIT compilation offsets the cost of performing that compilation.
     }
-    \script{jax_v_scipy.pdf}
+    \script{jax_v_scipy.py}
     \label{fig:jax_v_scipy}
 \end{figure}
 

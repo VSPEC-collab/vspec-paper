@@ -105,7 +105,7 @@ be written:
 system:
     distance: 12.4 pc
     inclination: 89.7 deg
-    phase_of_pariasteron: 0 deg
+    phase_of_periasteron: 0 deg
 \end{lstlisting}
 Note that the units of each of these parameters is included in a human-readable way. Internally, \vspec{} casts each of these parameters to an Astropy
 \texttt{Quantity} instance, so that the user can input any desired value and unit combination so long as the physical type is correct -- i.e. it would be
@@ -366,25 +366,20 @@ When the grid is initialized, GridPolator looks for the relevant data files on t
 Within this suite of codes, GridPolator has the added responsibility of binning spectra and producing wavelength axes that match those output by PSG. Wavelength sampling is done using constant resolving power $R=\frac{\lambda}{\Delta \lambda}$. The binning algorithm takes a pair of high-resolution flux and wavelength arrays and resamples the flux to a lower-resolution wavelength axis. This algorithm currently assumes that each point on the new wavelength axis is the central value of the wavelength channel, but future versions will treat each spectral channel \TJ{Ask Geronimo about the particulars of PSG's binning/wavelength axis creation}. \TJ{(I have never liked this, should I rewrite it before publication?)}. 
 
 \section{Simplified Climate Model}
-\vspec{} allows users to run models with any climate model they desire (so long as it can be converted into the \texttt{pypsg.PyGCM} format) and even comes with utilities to work with PSG/GlobES binary files, ExoCAM \citep{wolf2022}, WACCM \citep{marsh2013}, and ExoPlaSim \citep{paradise2022} without any custom code from the user.
+\vspec{} allows users to run simulations with any climate model they desire (so long as it can be converted into the \texttt{pypsg.PyGCM} format) and even comes with utilities to work with PSG/GlobES binary files, ExoCAM \citep{wolf2022}, WACCM \citep{marsh2013}, and ExoPlaSim \citep{paradise2022} without any custom code from the user.
 
-However, as a full global circulation model can take days to months to converge, there are many cases where a ``quick and dirty'' 3D climate model may be sufficient. Built into \vspec{} is such a ``faux'' climate model -- one that does not contain any of the circulation physics of the above sophisticated codes, but instead constructs a 3D planetary atmosphere in a fraction of a second from just a few parameters. Such a model can be advantageous, even, because it is extremely predictable; a feature in the phase curve can be traced back to the model parameters that cause it.
+However, as a full global circulation model can take days to months to converge, there are many cases where a ``quick and dirty'' 3D climate model may be sufficient. Built into \vspec{} is such a ``faux'' climate model -- one that does not contain any of the circulation physics of the above sophisticated codes, but instead constructs a 3D planetary atmosphere in a fraction of a second from just a few parameters. Such a model can also be advantageous because it is extremely predictable; a feature in the phase curve can easily be traced back to the model parameters that cause it.
 
 The \vspec{} GCM centers around a 2D temperature map of the planet's surface. Based on \citet{cowan2011}, this map
-is constructed completely given the incident flux from the star (parameterized by the host \teff~and radius
+is determined exclusively by the incident flux from the star (parameterized by the host \teff~and radius
 and the planet's semimajor axis and Bond albedo) and the unitless thermal redistribution efficiency $\epsilon$.
-This efficiency is 0 for a planet that reradiates instantly and $\gg 1$ for an atmosphere that efficiently redistributes heat to its night side.
-Figure \ref{fig:thermal_inertia} shows a temperature map example for an Earth-like planet with $\epsilon = 2\pi$.
-These temperature maps are validated by the energy balance of the planet; \vspec{} computes the incident and emergent
-flux across the planet and asserts that they agree.
+This efficiency is 0 for a planet that re-radiates instantly and $\gg 1$ for an atmosphere that efficiently redistributes heat to its night side. Figure \ref{fig:thermal_inertia} shows a temperature map example for an Earth-like planet with $\epsilon = 2\pi$. These temperature maps are validated by the energy balance of the planet; \vspec{} computes the incident and emergent flux across the planet and issues a warning if they are not in agreement.
 
 \begin{figure}
     \centering
     \includegraphics[width=0.5\textwidth]{figures/cowan_gcm.pdf}
     \caption{
-        Example of a surface temperature map created by \vspec{}. The solar flux at Earth,
-        a Bond albedo of 0.3, and $\epsilon = 2\pi$ were used in this case.
-        Notice that the hottest point is offset from the sub-stellar point due to thermal inertia.
+        Example of a surface temperature map created by the \vspec{} GCM, using values for the solar flux equivalent to Earth, a Bond albedo of 0.3, and $\epsilon = 2\pi$. Notice that the hottest point is offset from the sub-stellar point due to thermal inertia.
     }
     \script{cowan_gcm.py}
     \label{fig:thermal_inertia}
@@ -394,31 +389,33 @@ To compute the surface temperature we first compute the temperature at the equat
 \begin{equation}
     \frac{d \tilde{T}}{d \Phi} = \frac{1}{\epsilon}(\max{(\cos{\Phi}, 0)} - \tilde{T}^4)
 \end{equation}
-Where $\tilde{T}$ is the dimensionless temperature defined as $T/T_0$, or the temperature normalized by a local fiducial value. $\Phi$ is the angle from the substellar point, so we integrate if from $-\pi$ to $\pi$. This integral is done numerically in Figure \ref{fig:cowan_curves}, the optimal scheme depending on the value of $\epsilon$. For $0 < \epsilon < 1$ we adopt a reflecting initial value problem (IVP) scheme, where we set $\tilde{T}=1$ at $\Phi=\pi$, integrate to $-\pi$, then use the last value as the initial value for an integration from $-\pi$ to $\pi$. Note that for extremely small values of $\epsilon$ (e.g. $10^{-6}$) the integration is slow, and will fail if $\epsilon=0$; we recommended a lower limit of $\epsilon=10^{-4}$. When $1\le \epsilon < 10$ we solve the integral using a boundary value problem (BVP) scheme. For each of these two methods we employ the SciPy implementation (\texttt{solve\_ivp()} and \texttt{solve\_bvp()}, respectively). When $\epsilon \ge 10$ it is more efficient to use the analytic approximation given by \citet{cowan2011} Equation (A2).
+Where $\tilde{T}$ is the dimensionless temperature defined as $T/T_0$, or the temperature normalized by a local fiducial value. $\Phi$ is the angle from the substellar point, so we numerically integrate it from $-\pi$ to $\pi$ using one of several different schemes depending on the value of $\epsilon$. For $0 < \epsilon < 1$ we adopt a reflecting initial value problem (IVP) scheme, where we set $\tilde{T}=1$ at $\Phi=\pi$, integrate to $-\pi$, then use the last value as the initial value for an integration from $-\pi$ to $\pi$. Note that for extremely small values of $\epsilon$ (e.g. $10^{-6}$), the integration is slow, and will fail if $\epsilon=0$; we recommended a lower limit of $\epsilon=10^{-4}$. When $1\le \epsilon < 10$ we solve the integral using a boundary value problem (BVP) scheme. For each of these two methods we employ the SciPy \TJ{(cite scipy and the specific algorithms)} implementation (\texttt{solve\_ivp()} and \texttt{solve\_bvp()}, respectively). When $\epsilon \ge 10$ it is more efficient to use the analytic approximation given by Equation (A2) in \citet{cowan2011}. In Figure \ref{fig:cowan_curves} we show results for several different values of $\epsilon$.
 
 \begin{figure}
     \centering
     \includegraphics[width=0.5\textwidth]{figures/cowan_fig1.pdf}
     \caption{
-        Reproduction of \citet{cowan2011} Figure 1 using the methods described in the text. These curves show the dimensionless temperature at the equator of a planet as a function of angle from substellar point $\Phi$ for thermal inertia $\epsilon$. Note that the $\epsilon=0$ curve in the original figure is replaced with $\epsilon=10^{-4}$ (see text), and we do not include additional curves for mid-latitudes as in the original figure. As $\epsilon$ increases heat is moved from the dayside onto the nightside, and the temperature maximum shifts away from the substellar point.
+        Reproduction of \citet{cowan2011} Figure 1 using the methods described in the text. These curves show the dimensionless temperature at the equator of a planet as a function of angle from substellar point $\Phi$ for thermal inertia $\epsilon$. Note that the $\epsilon=0$ curve in the original figure is replaced with $\epsilon=10^{-4}$ (see explanation in the text), and we do not include additional curves for mid-latitudes as in the original figure. As $\epsilon$ increases, heat is moved from the dayside onto the nightside and the temperature maximum shifts away from the substellar point.
     }
     \script{cowan_fig.py}
     \label{fig:cowan_curves}
 \end{figure}
 
-\subsection{Latitudinal Mixing}
-The treatment by \citet{cowan2011} includes no mixing in the latitudinal direction, and the temperature tends to 0 as you approach the poles. We add a parameter $\alpha$ that is defined by the ratio between the polar temperature and the equitorial temperature at any given longitude. Let $f(\lambda;\alpha)$ be the temperature as a function of latitude $\lambda$ at an arbitrary longitude. If the surface is in equilibrium, the energy balance requires the outgoing energy flux to be independent of $\alpha$:
+\subsection{Extending to 3 Dimensions}
+\TJ{lat mixing figure}
+
+The treatment by \citet{cowan2011} includes no mixing in the latitudinal direction, nor a vertical temperature profile; to allow for variations in pressure and inclination, we augment their treatment with several simple approximations for latitudinal and vertical temperature variations. 
+
+We add a parameter $\alpha$ that is defined by the ratio between the polar temperature and the equatorial temperature at any given longitude. We define $f(\lambda;\alpha)$ to be the temperature as a function of latitude $\lambda$ at an arbitrary longitude; therefore if the surface is in equilibrium, the energy balance requires the outgoing energy flux to be independent of $\alpha$:
 \begin{equation}
     \label{eq:e_out}
     E_{\rm out} = \sigma \int_0^{\pi/2} f(\lambda; \alpha)^4 \cos{\lambda}\,d\lambda
 \end{equation}
-Where $E_{\rm out}$ is the outbound energy flux of an infintesimal sliver of differential longitude.
-In the case of $\alpha=0$ (i.e. no mixing) we can treat each latitude value independently, so the equilibrium temperature is
+where $E_{\rm out}$ is the outbound energy flux of an infinitesimal sliver of differential longitude. In the case of $\alpha=0$ (i.e. no mixing) we can treat each latitude value independently, so the equilibrium temperature is
 \begin{equation}
     f(\lambda; 0) = f(0;0) \cos^{1/4}{\lambda}
 \end{equation}
-
-Where $f(0;0)$ is the previously computed temperature at the equator (see Figure \ref{fig:cowan_curves}). Plugging this in to Equation (\ref{eq:e_out}) we see
+where $f(0;0)$ is the previously computed temperature at the equator (see Figure \ref{fig:cowan_curves}). Plugging this in to Equation (\ref{eq:e_out}), we see
 \begin{equation}
     \label{eq:nomix}
     \begin{array}{cl}
@@ -449,7 +446,7 @@ We can now write a general parameterization for the temperature as a function of
     f(\lambda;\alpha) = f(0;0)\,\left(\alpha \frac{\pi}{4} + (1-\alpha) \cos{\lambda}\right)^{1/4}
 \end{equation}
 
-\subsection{Pressure and Temperature}
+%\subsection{Pressure and Temperature}
 Combining Equation (\ref{eq:temp_gen}) with the numerically-computed equatorial temperatures yields a 2D temperature map that covers the surface of the planet. We construct a 3D atmosphere on top of this surface assuming the atmosphere is adiabatic with index $\gamma$. The user supplies both the adiabatic index and the surface pressure $P_{\rm surf}$. The temperature at some altitude $z$ is given by
 \begin{equation}
     T_z = T_{\rm surf}\,\left( \frac{P_z}{P_{\rm surf}} \right)^{1-\frac{1}{\gamma}}

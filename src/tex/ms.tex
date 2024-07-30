@@ -475,21 +475,18 @@ stellar surface can lead to a false atmospheric signal -- a phenomenon known as 
 During transit, the planetary atmosphere is illuminated by the portion of the star directly behind the planet. The depth of the transit
 should be measured with respect for the spectrum of this region of the stellar surface. However, the disk-integrated stellar spectrum is often used instead.
 In the case that the stellar surface is not homogeneous, the transit signal is contaminated by the star.
-\citet{moran2023} first observed this effect using JWST from super-Earth GJ 486b.
+We will reproduce results by \citet{moran2023}, who observed this effect with JWST/NIRSpec during a transit of super-Earth GJ 486b.
 
 Whenever possible, we draw parameter values from \citet{moran2023} and the NExScI Archive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/GJ1214b}}.
 We use the JWST NIRSpec/G395H instrument setup but set $R=200$ to account for the resolution of the reduction.
 Additionally we observe for 3.53 hours with an 8 minute cadence. Mid-transit is reached exactly halfway through the observation.
 
-We will do three \vspec{} simulations:
+We will do two \vspec{} simulations:
 \begin{enumerate}
-    \item Bare rock, no spots.
-    \item 1 bar \ce{H2O} atmosphere, no spots.
-    \item Bare rock, 2.5\% coverage by 2700 K spots
+    \item 1 bar \ce{H2O} isothermal atmosphere, no spots. \label{case:1barh2o}
+    \item No atmosphere, 2.5\% coverage by 2700 K spots \label{case:no_atmo}
 \end{enumerate}
-
-We expect in case 1 to observe a flat spectrum, and in case 2 to observe additional
-absorption from the \ce{H2O} atmosphere. Note also that we disabled \ce{H2O}-\ce{H2O} collision-induced absorption (CIA) for
+In Case \ref{case:1barh2o} we expect to see an absorption spectrum characteristic of \ce{H2O}. Case \ref{case:no_atmo} is more complicated, though in the absence of spots we would expect a flat spectrum. Note also that we disabled \ce{H2O}-\ce{H2O} collision-induced absorption (CIA) for
 these simulations because the effect was not considered in the original analysis of GJ 486b.
 
 \begin{figure}
@@ -506,13 +503,13 @@ these simulations because the effect was not considered in the original analysis
 
 We find that, as expected, the addition of spots changes the transit depth in a way that depends on wavelength -- mimicking
 light lost to absorbers in a planetary atmosphere. Figure \ref{fig:moran_transit} shows us that, in this case, we observe false absorption;
-this is due to an increase in the spotted fraction of the surface relative to the quiet photosphere. However, if a spot was blocked by
+this is due to a temporary increase in the spotted fraction of the surface relative to the quiet photosphere. However, if a spot was blocked by
 the planet we might see similar features inverted to mimic emission.
 
 \subsection{Phase Curve}
 Analysis of JWST MIRI-LRS phase curves of GJ 1214b by \citet{kempton2023} did not consider stellar
 contamination because of the slow rotation rate of the host star \citep[approximately 1/80$^{\text{th}}$ the orbital frequency,][]{cloutier2021}.
-In this example we use \vspec{} to demonstrate that this is a reasonable assumption.
+In this example we simulate this system using \vspec{} and find that this is a reasonable assumption.
 
 We initialize \vspec{} to run a 41.0 hour observation with a cadence of 15 minutes. We use stellar and planetary parameters
 from the NExScI Exoplanet Archive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/GJ1214b}}.

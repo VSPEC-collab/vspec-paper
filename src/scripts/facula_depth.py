@@ -80,7 +80,7 @@ fig.savefig(outfig)
 
 # Copy the other figure now
 
-static_fig_name = 'facula_model.png'
+static_fig_name = 'facula_diagram.pdf'
 static_fig_path = paths.static / static_fig_name
 target_path = paths.figures / static_fig_name
 

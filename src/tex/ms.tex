@@ -245,31 +245,17 @@ where $A_{\rm min}$ is the area given to each spot when it is initialized. There
 \subsection{Faculae \label{subsec:faculae}}
 Faculae are magnetically-generated regions of the solar surface that usually appear as bright points near the limb; we employ the ``hot wall''
 model \citep{spruit1976} where faculae are described as three-dimensional pores in the stellar surface with a hot, bright wall and a cool, dark floor, as shown in Figure \ref{fig:fac_struct}. Their three-dimensional structure causes faculaes' observational properties to change depending on their angle from disk-center. Close to the limb,
-the hot wall is visible to the observer, and faculae appear as bright points; near the center, however, the cool floor is exposed and faculae appear dark. To consider this effect in the faculae lightcurve, we compute the fraction of each facula's projected area -- the area on the disk it would occupy as seen by the observer -- that is occupied by the hot wall versus the cool floor. This is done via numerical integral along the radius of the spot.
+the hot wall is visible to the observer, and faculae appear as bright points; near the center, however, the cool floor is exposed and faculae appear dark. To consider this effect in the faculae lightcurve, we compute the fraction of each facula's projected area -- the area on the disk it would occupy as seen by the observer -- that is occupied by the hot wall versus the cool floor. Mathematically, this is no different from finding the area of the intersection of two overlapping ellipses:
 
-We calculate each portion using geometrical relationships between the spot dimensions and the viewing angle:
+As shown in Figure \ref{fig:fac_struct}, peering through the top of the pore the observer can see a portion of the hot wall and a portion of the cool floor. Consider an ellipse centered at the origin with semimajor axis $R$ and semiminor axis $\mu R$, oriented so that the semimajor axis points along the $y$-axis. Now consider a second, identical ellipse, displaced along the $x$-axis by some amount $0<d<\mu R$. The intersection of these two ellipses is the portion of the cool floor that is visible, and the area of the second ellipse outside the intersection is the portion of the hot wall that the observer sees. We are not interested in the absolute areas of each of these regions, only how they relate to the total ellipse area $\pi \mu R^2$, and so we can generalize to the case that $\mu=1$ (i.e. circles). This problem is solved for arbitrary circles by \citet{weisstein2004}. The details of their derivation are not relevant to this text, but we use their result to create a function $f(d,R)$ that computes the fraction of a circle with radius $R$ and center $(d,0)$ that is inside the unit circle. For a facula with radius $r$, wall height $h$, and angle from disk center $theta$, we find that the effective area of the cool floor is:
 \begin{equation}
-    f_{wall} = \frac{\int _{-R}^{R} Z_{\rm eff} dr}{\int _{-R}^{R} Z_{\rm eff} dr + \int _{-R}^{R} R_{\rm eff} dr}
+    \frac{A_{\rm floor}}{A_{\rm total}} = f\left(\frac{h}{r}\tan{\theta}, 1 \right)
 \end{equation}
-where $Z_{\rm eff}$ is the apparent height of the wall
+and for the hot wall it is:
 \begin{equation}
-    Z_{\rm eff} = \left\{
-    \begin{array}{lr}
-        Z_w \sin{\alpha}, & \text{if } \alpha \leq \alpha_{\rm crit} \\
-        2\sqrt{R^2 - r^2}\cos{\alpha}, & \text{if } \alpha > \alpha_{\rm crit}
-    \end{array}
-    \right\}
+    \frac{A_{\rm wall}}{A_{\rm total}} = 1-  f\left(\frac{h}{r}\tan{\theta}, 1 \right)
 \end{equation}
-and $R_{\rm eff}$ is the apparent width of the floor
-\begin{equation}
-    R_{\rm eff} = \left\{
-    \begin{array}{lr}
-        2\sqrt{R^2 - r^2} - Z_w\sin{\alpha}, & \text{if } \alpha \leq \alpha_{\rm crit} \\
-        0, & \text{if } \alpha > \alpha_{\rm crit}
-    \end{array}
-    \right\}
-\end{equation}
-for facula radius $R$, depth $Z_w$, and angle from disk-center $\alpha$. $r$ in this numerical scheme is defined as the distance from the center of the facula along the radial line connecting the facula center to the disk center. $\alpha_{\rm crit}$ is the value of alpha at which the floor is no longer visible and is defined to be $\arctan{\frac{2\sqrt{R^2-r^2}}{Z_w}}$.
+
 
 According to studies of solar faculae \citep{topka1997}, faculae temperatures (of both the floor and wall) are dependent on the facula radius, while depth appears to be constant. They also find that the smallest faculae have no visible floor, and that even at disk center they appear as bright points. We parameterize the floor temperature to be
 \begin{equation}
@@ -280,7 +266,6 @@ According to studies of solar faculae \citep{topka1997}, faculae temperatures (o
     \end{array}
     \right\}
 \end{equation}
-\TJ{Change variable names, make diagram}
 where $r$ is the radius of the facula, $r_{\rm min}$ is the minimum radius where the floor is visible, $\Delta  T_{\rm eff, floor, 0}$ is the difference between the floor and photosphere \teff at $r_{\rm min}$, and $m_{\rm floor}$ is the slope of the relationship with units of [temperature] [length]$^{-1}$. Similarly, the wall temperature is parameterized as
 \begin{equation}
     \Delta T_{\rm eff,wall} = m_{\rm wall}r + \Delta T_{\rm eff,wall,0}
@@ -291,7 +276,7 @@ Facula lifetimes are defined as the time it takes its radius to decay by $e^{-2}
 
 \begin{figure}
     \centering
-    \gridline{\includegraphics[width=0.5\textwidth]{figures/facula_model.png}}
+    \gridline{\includegraphics[width=0.5\textwidth]{figures/facula_diagram.pdf}}
     \gridline{\includegraphics[width=0.5\textwidth]{figures/facula_depth.pdf}}
     \script{facula_depth.py}
     \caption{

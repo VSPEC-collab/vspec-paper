@@ -527,28 +527,28 @@ significantly change the observed phase curve of GJ 1214b. At it's worst (i.e. n
 contamination -- compared to the 700 ppm relative flux of the planet at $8.5 {\mu m}$. Similar studies could be done to assess the potential for
 stellar contamination in other exoplanetary systems in order to judge fitness as a target.
 
-\subsection{MIRECLE Phase Curve}
-In this example we will look at the best-case target for the Mid-IR Exoplanet CLimate Explorer \citep[MIRECLE,][]{mandell2022}
-mission concept: Proxima Centauri b with no stellar variability. We will instead examine the expected noise produced by this observation
-and assess the detectability of the planet in a single orbit. \vspec{} uses the noise models built into PSG, allowing native support for
-noise due to the instrument, source, and astrophysical background.
+% \subsection{MIRECLE Phase Curve}
+% In this example we will look at the best-case target for the Mid-IR Exoplanet CLimate Explorer \citep[MIRECLE,][]{mandell2022}
+% mission concept: Proxima Centauri b with no stellar variability. We will instead examine the expected noise produced by this observation
+% and assess the detectability of the planet in a single orbit. \vspec{} uses the noise models built into PSG, allowing native support for
+% noise due to the instrument, source, and astrophysical background.
 
-We use \vspec{}'s built-in MIRECLE instrument template, which includes a 2 m aperture and observes from 1-18 $\mu m$ with $R=50$.
-We draw stellar and bulk planetary parameters from the NExScI Exoplanet Archive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/proxima\%20cen}}
-and assume $i=85^\circ$ and Earth density. The GCM we use has a Bond albedo of 0.3, $\epsilon=1.5$, $P_{\rm surf} = 1 \text{bar}$ and a 100 ppm \ce{CO2} atmosphere with a \ce{N2} background.
-We ran the simulation for one orbit with an 24 hour cadence. Because this is a best-case scenario, we assumed perfect knowledge of the stellar spectrum.
-We are left with the planetary spectrum and photon noise from the star.
+% We use \vspec{}'s built-in MIRECLE instrument template, which includes a 2 m aperture and observes from 1-18 $\mu m$ with $R=50$.
+% We draw stellar and bulk planetary parameters from the NExScI Exoplanet Archive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/proxima\%20cen}}
+% and assume $i=85^\circ$ and Earth density. The GCM we use has a Bond albedo of 0.3, $\epsilon=1.5$, $P_{\rm surf} = 1 \text{bar}$ and a 100 ppm \ce{CO2} atmosphere with a \ce{N2} background.
+% We ran the simulation for one orbit with an 24 hour cadence. Because this is a best-case scenario, we assumed perfect knowledge of the stellar spectrum.
+% We are left with the planetary spectrum and photon noise from the star.
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/mirecle.pdf}
-    \caption{
-        Simulated spectra of Proxima Centauri b observed by MIRECLE. Noise and error bars based on 24 hour integrations with a 2 m aperture MIRECLE
-        space telescope.
-        }
-    \script{mirecle.py}
-    \label{fig:mirecle}
-\end{figure}
+% \begin{figure}
+%     \centering
+%     \includegraphics[width=0.5\textwidth]{figures/mirecle.pdf}
+%     \caption{
+%         Simulated spectra of Proxima Centauri b observed by MIRECLE. Noise and error bars based on 24 hour integrations with a 2 m aperture MIRECLE
+%         space telescope.
+%         }
+%     \script{mirecle.py}
+%     \label{fig:mirecle}
+% \end{figure}
 
 \section{Conclusion \label{sec:conclusion}}
 \TJ{Talk about what we can do next.}

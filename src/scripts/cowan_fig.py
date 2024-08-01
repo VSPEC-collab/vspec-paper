@@ -27,7 +27,7 @@ for e,l,m,c in zip(eps,label,modes,colors):
     tsurf = np.concatenate([tsurf[index:],tsurf[:index]])
     ax.plot(lons,tsurf,color=c,label=f'$\\epsilon = {l}$')
 
-ax.set_xlabel('$\\Phi$')
+ax.set_xlabel('Longitude')
 ax.set_ylabel('$T/T_0$')
 ax.set_xticks([-0.5*np.pi,0,0.5*np.pi,np.pi, 1.5*np.pi,])
 ax.set_xticklabels(['$-\\pi/2$','$0$','$\\pi/2$','$\\pi$','$3\\pi/2$'])
@@ -47,7 +47,7 @@ for a,l,c in zip(alphas,labels,colors):
     tsurf = get_curve(a,x)
     ax.plot(x,tsurf,label=f'$\\alpha = {l}$',color=c)
 
-ax.set_xlabel('$\\lambda$')
+ax.set_xlabel('Latitude')
 ax.set_ylabel('$T/T_{\\rm eq}$')
 ax.set_xticks([0,0.25*np.pi,0.5*np.pi])
 ax.set_xticklabels(['$0$','$\\pi/4$','$\\pi/2$'])

@@ -37,6 +37,9 @@ dependencies:
     - src/scripts/flare_lc.yaml
   src/scripts/moran.py:
     - src/static/moran2023_fig3.txt
+  src/scripts/ld_transit.py:
+    - src/scripts/ld_lc_lamb.yaml
+    - src/scripts/ld_lc_solar.yaml
 
 # Name of the `.tex` manuscript and corresponding `.pdf` article
 ms_name: ms
@@ -104,4 +107,4 @@ tectonic_args: []
 verbose: false
 
 # Version of `showyourwork` used to create this workflow
-version: 0.4.3
+version: 0.4.4

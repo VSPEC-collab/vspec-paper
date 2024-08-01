@@ -36,7 +36,7 @@ fig = plt.figure(figsize=(4,3))
 proj = ccrs.Robinson(central_longitude=0)
 ax = fig.add_subplot(projection=proj)
 
-im = ax.pcolormesh(lons.to_value(u.deg),lats.to_value(u.deg),data.to_value(u.K),cmap='gist_heat',transform=ccrs.PlateCarree())
+im = ax.pcolormesh(lons.to_value(u.deg),lats.to_value(u.deg),data.to_value(u.K),cmap='gist_heat',transform=ccrs.PlateCarree(),rasterized=True)
 gl = ax.gridlines(crs=ccrs.PlateCarree(),draw_labels=True,
     color='grey', alpha=0.8, linestyle='--')
 gl.top_xlabels = False

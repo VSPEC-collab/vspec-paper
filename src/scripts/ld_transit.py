@@ -20,13 +20,13 @@ pypsg.docker.set_url_and_run()
 lam_model = VSPEC.ObservationModel.from_yaml(LAMBERT_CONFIG)
 sol_model = VSPEC.ObservationModel.from_yaml(SOLAR_CONFIG)
 
-lam_model._build_star()
-sol_model._build_star()
+# lam_model._build_star()
+# sol_model._build_star()
 
-# lam_model.build_planet()
-# lam_model.build_spectra()
-# sol_model.build_planet()
-# sol_model.build_spectra()
+lam_model.build_planet()
+lam_model.build_spectra()
+sol_model.build_planet()
+sol_model.build_spectra()
 
 lam_data = VSPEC.PhaseAnalyzer.from_model(lam_model)
 sol_data = VSPEC.PhaseAnalyzer.from_model(sol_model)
@@ -65,13 +65,15 @@ lam_model.star.plot_surface(0*u.deg,0*u.deg,ax=lam_ax,
                             orbit_radius=lam_model.params.planet.semimajor_axis,
                             radius=lam_model.params.planet.radius,
                             phase=179.3*u.deg,
-                            inclination=lam_model.params.system.inclination
+                            inclination=lam_model.params.system.inclination,
+                            rasterize=True
                             )
 sol_model.star.plot_surface(0*u.deg,0*u.deg,ax=sol_ax,
                             orbit_radius=sol_model.params.planet.semimajor_axis,
                             radius=sol_model.params.planet.radius,
                             phase=179.3*u.deg,
-                            inclination=sol_model.params.system.inclination
+                            inclination=sol_model.params.system.inclination,
+                            rasterize=True
                             )
 
 # inax = lam_ax.inset_axes([-0.99,-0.15,0.3,0.3],transform=ccrs.PlateCarree())

@@ -3,6 +3,7 @@
 \usepackage{showyourwork}
 \usepackage[version=4]{mhchem}
 \usepackage{listings}
+\usepackage{hyperref}
 
 
 \newcommand{\teff}{$T_{\rm eff}$}
@@ -11,7 +12,6 @@
 \newcommand{\vspec}[1]{\texttt{VSPEC}#1}
 % \def\vspec#{\texttt{VSPEC}}
 
-\newcommand{\urldocsvspec}{\url{https://vspec-collab.github.io/VSPEC/0.6.0/index.html}}
 \newcommand{\urldocsvspecvsm}{\url{https://vspec-vsm.readthedocs.io/en/latest/}}
 \newcommand{\urldocspypsg}{\url{https://tedjohnson12.github.io/pypsg/}}
 \newcommand{\urldocsgridpolator}{\url{https://vspec-collab.github.io/GridPolator/}}
@@ -97,14 +97,18 @@ In this paper we will describe the science motivation behind all of these codes,
 \section{Using \vspec{}}
 \label{sec:vspec}
 
-The flow of \vspec{}'s code is broken into three parts: i) read in the configuration, ii) compute planetary spectra, and iii) compute stellar spectra. Detailed API documentation, configuration parameter descriptions, and examples can be found on the \vspec{} documentation page\footnote{\urldocsvspec}.
+The flow of \vspec{}'s code is broken into three parts: i) read in the configuration, ii) compute planetary spectra, and iii) compute stellar spectra.
+See the \vspec{} documentation page\footnote{\href{https://vspec-collab.github.io/VSPEC/0.6.0/index.html}{https://vspec-collab.github.io/VSPEC/0.6.0/index.html}} for detailed API documentation.
 \subsection{Configuring \vspec{}}
 \label{subsec:config}
 
 \vspec{} configurations are designed to minimize human errors by providing two equivalent formats. The first, a file written in YAML, is optimized for
 human readability. For example, the \texttt{system} section, which describes the relationship between the observed planetary system and the observer, could
 be written:
-\begin{lstlisting}[label={ls:yaml},caption={\vspec{} YAML Configuration}]
+\begin{lstlisting}[
+    label={ls:yaml},
+    caption={\vspec{} YAML Configuration}
+]
 system:
     distance: 12.4 pc
     inclination: 89.7 deg

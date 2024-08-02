@@ -1,5 +1,5 @@
 % Define document class
-\documentclass[twocolumn]{aastex631}
+\documentclass[twocolumn,linenumbers]{aastex631}
 \usepackage{showyourwork}
 \usepackage[version=4]{mhchem}
 \usepackage{listings}
@@ -10,6 +10,11 @@
 \newcommand{\TJ}[1]{\textcolor{tedcommentcolor}{#1}}
 \newcommand{\vspec}[1]{\texttt{VSPEC}#1}
 % \def\vspec#{\texttt{VSPEC}}
+
+\newcommand{\urldocsvspec}{\url{https://vspec-collab.github.io/VSPEC/0.6.0/index.html}}
+\newcommand{\urldocsvspecvsm}{\url{https://vspec-vsm.readthedocs.io/en/latest/}}
+\newcommand{\urldocspypsg}{\url{https://tedjohnson12.github.io/pypsg/}}
+\newcommand{\urldocsgridpolator}{\url{https://vspec-collab.github.io/GridPolator/}}
 
 \shorttitle{\vspec{}}
 \shortauthors{Johnson et al.}
@@ -92,7 +97,7 @@ In this paper we will describe the science motivation behind all of these codes,
 \section{Using \vspec{}}
 \label{sec:vspec}
 
-The flow of \vspec{}'s code is broken into three parts: i) read in the configuration, ii) compute planetary spectra, and iii) compute stellar spectra.
+The flow of \vspec{}'s code is broken into three parts: i) read in the configuration, ii) compute planetary spectra, and iii) compute stellar spectra. Detailed API documentation, configuration parameter descriptions, and examples can be found on the \vspec{} documentation page\footnote{\urldocsvspec}.
 \subsection{Configuring \vspec{}}
 \label{subsec:config}
 
@@ -184,7 +189,7 @@ PSG\footnote{\url{https://psg.gsfc.nasa.gov/}} \citep{villanueva2018} is a power
 A powerful feature of \texttt{pypsg} is that it provides a universal interface for 3D atmosphere models and PSG's Global Emission Spectra (GlobES) application.
 GlobES expects 3D data to be presented in a binary data format, and converting a model to this format is non-trivial. \texttt{pypsg}'s \texttt{PyGCM} class provides a native Python representation of GlobES input, and includes built-in methods for converting popular climate models like ExoCAM \citep{wolf2022} and the Whole Atmosphere Community Climate Model \citep[WACCM,][]{marsh2013} to the correct format.
 
-Listing \ref{ls:pypsg} shows a minimal example that uses \texttt{pypsg} to make a call to PSG/GlobES. Here \texttt{pypsg} converts a GCM output from the netCDF format to a \texttt{PyGCM}, which, along with data model classes like \texttt{Target} and \texttt{Observatory}, is used as an argument to construct a \texttt{PyConfig} class instance. This configuration object is then passed to an \texttt{APICall} instance. When the API call is made, the contents of the \texttt{PyConfig} are included in the body of the POST request in the \texttt{file} field. PSG reads this the same as it would if we had written those contents to a file \texttt{config.txt} and passed the \texttt{--data-urlencode file@config.txt} option to \texttt{cURL}, as are the instructions in the PSG handbook \citep[pp. 162-163]{villanueva2022}.
+Listing \ref{ls:pypsg} shows a minimal example that uses \texttt{pypsg} to make a call to PSG/GlobES. Here \texttt{pypsg} converts a GCM output from the netCDF format to a \texttt{PyGCM}, which, along with data model classes like \texttt{Target} and \texttt{Observatory}, is used as an argument to construct a \texttt{PyConfig} class instance. This configuration object is then passed to an \texttt{APICall} instance. When the API call is made, the contents of the \texttt{PyConfig} are included in the body of the POST request in the \texttt{file} field. PSG reads this the same as it would if we had written those contents to a file \texttt{config.txt} and passed the \texttt{--data-urlencode file@config.txt} option to \texttt{cURL}, as are the instructions in the PSG handbook \citep[pp. 162-163]{villanueva2022}. More details on use of this library including its API and examples can be found on the \texttt{pypsg} documentation page\footnote{\urldocspypsg}.
 
 \begin{lstlisting}[
     basicstyle=\footnotesize,language=Python,label={ls:pypsg},caption={\texttt{pypsg} Example}
@@ -259,7 +264,7 @@ Listing \ref{ls:pypsg} shows a minimal example that uses \texttt{pypsg} to make 
 The \vspec{} stellar model is designed in a modular fashion to allow for both simple and complex behaviors. The model is available as the Python package \texttt{vspec-vsm}, which is based on the earlier stellar spot model \texttt{spotty} \citep{barclay2021}. It is spectral-model agnostic, meaning that it relies on another package (GridPolator, see Section \ref{sec:gridpolator}) to compute the actual variable spectra. Instead, the surface model takes a pair of latitude and longitude points as input and returns a dictionary $\{ T_{\rm eff} : f_{T_{\rm eff}} \}$ where the keys \teff~ are the effective temperatures of each surface component and the values $f_{T_{\rm eff}}$ are the fraction of the visible stellar disk with that effective temperature.
 
 The main model class is the \texttt{Star} object, which describes bulk properties (e.g. radius, photospheric \teff, limb darkening parameters) in addition to acting as 
-a container for objects representing sources of variability such as \texttt{StarSpot}, \texttt{Facula}, \texttt{StelarFlare}, and \text{Granulation}, which are described below.
+a container for objects representing sources of variability such as \texttt{StarSpot}, \texttt{Facula}, \texttt{StelarFlare}, and \text{Granulation}, which are described below. For a complete description of the code, including examples, see the \texttt{vspec-vsm} documentation page\footnote{\urldocsvspecvsm}.
 
 \subsection{Stellar Surface Grid}
 Sources of variability that exist as major structures on the stellar surface (i.e. spots and faculae) are encoded as deviations from the photospheric effective temperature on a grid of points representing the stellar surface. Each time the fractions of each surface component are calculated, the grid is initialized with constant \teff. The code then iterates through each spot and facula, replacing portions of the grid with the effective temperatures that make up each structure.

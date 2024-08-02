@@ -103,7 +103,7 @@ be written:
 system:
     distance: 12.4 pc
     inclination: 89.7 deg
-    phase_of_periasteron: 0 deg
+    phase_of_periastron: 0 deg
 \end{lstlisting}
 Note that the units of each of these parameters is included in a human-readable way. Internally, \vspec{} casts each of these parameters to an Astropy
 \texttt{Quantity} instance, so that the user can input any desired value and unit combination so long as the physical type is correct -- i.e. it would be
@@ -120,7 +120,7 @@ params = InternalParameters(
     system=SystemParameters(
         distance=12.4*u.pc,
         inclination=89.7*u.deg,
-        phase_of_pariasteron=0*u.deg
+        phase_of_periastron=0*u.deg
     )
 )
 \end{lstlisting}

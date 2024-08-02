@@ -70,7 +70,7 @@ planet:
 system:
   distance: 1.5 pc
   inclination: 80 deg
-  phase_of_periasteron: 0 deg
+  phase_of_periastron: 0 deg
 obs:
   observation_time: 40 day
   integration_time: 1 day

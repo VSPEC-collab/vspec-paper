@@ -127,7 +127,7 @@ spotted_rock_planet = params.PlanetParameters(
 system_params = params.SystemParameters(
     distance=8.07*u.pc,
     inclination=inclination,
-    phase_of_periasteron=0*u.deg
+    phase_of_periastron=0*u.deg
 )
 
 

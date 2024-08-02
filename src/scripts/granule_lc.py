@@ -58,7 +58,7 @@ planet = params.PlanetParameters.std(init_phase=180*u.deg,init_substellar_lon=0*
 system = params.SystemParameters(
     distance=1.3*u.pc,
     inclination=30*u.deg,
-    phase_of_periasteron=0*u.deg
+    phase_of_periastron=0*u.deg
 )
 observation = params.ObservationParameters(
     observation_time=3*u.day,

@@ -24,7 +24,8 @@
 \correspondingauthor{Ted M Johnson}
 \email{ted.johnson@unlv.edu}
 
-\author[0000-0002-1570-2203]{Ted M Johnson}
+% \author[0000-0002-1570-2203]{Ted M Johnson}
+\author{Ted M Johnson}
 \affiliation{Southeastern Universities Research Association, 1201 New York Avenue NW, Suite 430, Washington, DC 20055, USA}
 \affiliation{Center for Research and Exploration in Space Science and Technology, NASA Goddard Space Flight Center, 8800 Greenbelt Road, Greenbelt, MD 20771, USA}
 \affiliation{NASA Goddard Space Flight Center \\
@@ -98,7 +99,7 @@ The flow of \vspec{}'s code is broken into three parts: i) read in the configura
 \vspec{} configurations are designed to minimize human errors by providing two equivalent formats. The first, a file written in YAML, is optimized for
 human readability. For example, the \texttt{system} section, which describes the relationship between the observed planetary system and the observer, could
 be written:
-\begin{lstlisting}[label={ls:yaml}]
+\begin{lstlisting}[label={ls:yaml},caption={\vspec{} YAML Configuration}]
 system:
     distance: 12.4 pc
     inclination: 89.7 deg
@@ -111,7 +112,7 @@ equivalent to write \texttt{3.83e17 m} as the value for the \texttt{distance} pa
 The second input method available is to directly initialize the Python object that \vspec{} uses internally to store its model parameters.
 The top-level object, \texttt{InternalParameters}, is structured to mirror the YAML input file, with one argument per YAML section. The
 parameters in Listing \ref{ls:yaml} would be written:
-\begin{lstlisting}[language=Python]
+\begin{lstlisting}[language=Python, caption={\vspec{} Python configuration}]
 from astropy import units as u
 from VSPEC.params import *
 params = InternalParameters(
@@ -178,11 +179,79 @@ In the case of a total eclipse of the planet, the planetary thermal and reflecte
 
 PSG\footnote{\url{https://psg.gsfc.nasa.gov/}} \citep{villanueva2018} is a powerful radiative transfer tool that is ubiquitous in the exoplanet and solar system atmosphere fields. Either through its web graphical interface, its public API, or the local version available through Docker, PSG allows users to simulate observations of planets, comets, and moons with a variety of geometries and realistic noise models.
 
-\vspec{} uses a Python interface for the PSG API system called \texttt{pypsg}, which is a general stand-alone library built for any Python-based API call to PSG. \texttt{pypsg} draws inspiration from object-relational mapping in frameworks such as Django\footnote{\url{https://www.djangoproject.com/}} to encode a PSG configuration file as a native Python object.Fields of a \texttt{pypsg} data model represent one or more lines of a configuration file, and the two representations are interchangable without loss of information. Upon creation of this configuration as a \texttt{PyConfig} object, a user can create an \texttt{APICall} instance which handles sending a request to PSG via Python's \texttt{requests}\footnote{\url{https://github.com/psf/requests}} package. This dedicated caller is important in that it reads a user's API key from a known location on disk, removing the possibility that the key
-could be committed to a public repository.
+\vspec{} uses a Python interface for the PSG API system called \texttt{pypsg}, which is a general stand-alone library built for any Python-based API call to PSG. \texttt{pypsg} draws inspiration from object-relational mapping in frameworks such as Django\footnote{\url{https://www.djangoproject.com/}} to encode a PSG configuration file as a native Python object. Fields of a \texttt{pypsg} data model represent one or more lines of a configuration file, and the two representations are interchangable without loss of information. Upon creation of this configuration as a \texttt{PyConfig} object, a user can create an \texttt{APICall} instance which handles sending a request to PSG via Python's \texttt{requests}\footnote{\url{https://github.com/psf/requests}} package. This dedicated caller is important in that it reads a user's API key from a known location on disk, removing the possibility that the key could be committed to a public repository.
 
 A powerful feature of \texttt{pypsg} is that it provides a universal interface for 3D atmosphere models and PSG's Global Emission Spectra (GlobES) application.
 GlobES expects 3D data to be presented in a binary data format, and converting a model to this format is non-trivial. \texttt{pypsg}'s \texttt{PyGCM} class provides a native Python representation of GlobES input, and includes built-in methods for converting popular climate models like ExoCAM \citep{wolf2022} and the Whole Atmosphere Community Climate Model \citep[WACCM,][]{marsh2013} to the correct format.
+
+Listing \ref{ls:pypsg} shows a minimal example that uses \texttt{pypsg} to make a call to PSG/GlobES. Here \texttt{pypsg} converts a GCM output from the netCDF format to a \texttt{PyGCM}, which, along with data model classes like \texttt{Target} and \texttt{Observatory}, is used as an argument to construct a \texttt{PyConfig} class instance. This configuration object is then passed to an \texttt{APICall} instance. When the API call is made, the contents of the \texttt{PyConfig} are included in the body of the POST request in the \texttt{file} field. PSG reads this the same as it would if we had written those contents to a file \texttt{config.txt} and passed the \texttt{--data-urlencode file@config.txt} option to \texttt{cURL}, as are the instructions in the PSG handbook \citep[pp. 162-163]{villanueva2022}.
+
+\begin{lstlisting}[
+    basicstyle=\footnotesize,language=Python,label={ls:pypsg},caption={\texttt{pypsg} Example}
+]
+    import pypsg
+    from astropy import units as u
+    from netCDF4 import Dataset
+
+    # This next line only needs to be run once per user.
+    # These settings are saved to `~/.pypsg/settings.json`
+    pypsg.settings.save_setting(
+        api_key='my_api_key',
+        url='https://psg.gsfc.nasa.gov/api.php'
+    )
+
+    gcm_data = Dataset('path/to/gcm.nc')
+
+    cfg = pypsg.cfg.PyConfig(
+        target=pypsg.cfg.Target(
+            object='Exoplanet',
+            name='proxima-cen-b'
+            ...
+        ),
+        geometry=pypsg.cfg.Observatory(...),
+        generator=pypsg.cfg.Generator(...),
+        telescope=pypsg.cfg.SingleTelescope(...)
+        noise=pypsg.cfg.CCD(...)
+        gcm=pypsg.globes.waccm_to_pygcm(
+            gcm_data,
+            itime=0,
+            molecules=['H2O','CO2'],
+            aerosols=['Water','WaterIce'],
+            mean_molecular_mass=48.0
+        )
+
+    )
+
+    caller = pypsg.APICall(
+        cfg=cfg,
+        app='globes',
+        output_type='rad'
+    )
+    response = caller()
+
+    print(response.rad['Wave/freq','proxima-cen-b'])
+
+    -------------------
+
+    Wave/freq  proxima-cen-b
+        um      W / (um m2) 
+    ----------- -------------
+            1.0   1.81314e-20
+           1.02    3.1926e-20
+         1.0404   4.95983e-19
+       1.061208    5.0892e-19
+     1.08243216   3.79632e-19
+            ...           ...
+     16.3163953   7.66301e-20
+     16.6427232   7.66245e-20
+    16.97557767   7.54221e-20
+    17.31508922   7.49258e-20
+    17.66139101   7.35507e-20
+    Length = 146 rows
+
+
+
+\end{lstlisting}
 
 \section{Stellar Variability Model}
 \label{sec:star}

@@ -222,9 +222,11 @@ for edge,ax in zip(bin_edges,axes):
     ax.plot(time,(spotted_lc),c='xkcd:lavender',label='Spotted')
     ax.text(0.55,0.7,f'{w1:.1f} - {w2:.1f}',transform=ax.transAxes)
     ax.set_ylim(-100,700)
-fig.subplots_adjust(hspace=0,wspace=0)
+
 axes[0].legend(loc='upper left')
 axes[-1].set_xlabel('Time (hour)')
-_ = axes[n_ax//2].set_ylabel('Planet Flux (ppm)')
+_ = axes[n_ax//2].set_ylabel('Apparent Planet Flux (ppm)')
 
+fig.tight_layout()
+fig.subplots_adjust(hspace=0,wspace=0)
 fig.savefig(outfile)

@@ -7,6 +7,6 @@ dependencies:
       - git+https://github.com/VSPEC-collab/VSPEC.git@release/1.0.0
       - git+https://github.com/VSPEC-collab/vspec-vsm.git@main
       - git+https://github.com/VSPEC-collab/GridPolator.git@release/0.4.2
-      - git+https://github.com/tedjohnson12/pypsg.git@main
+      - git+https://github.com/tedjohnson12/libpypsg.git@main
       - cartopy==0.22.0
       - pandas==2.2.0

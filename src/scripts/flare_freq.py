@@ -8,12 +8,12 @@ import matplotlib.pyplot as plt
 
 from vspec_vsm.flares import FlareGenerator
 from VSPEC import ObservationModel, PhaseAnalyzer
-import pypsg
+import libpypsg
 
 import paths
 
 import setup_psg;setup_psg.setup_psg()
-pypsg.docker.set_url_and_run()
+libpypsg.docker.set_url_and_run()
 
 SEED = 10
 outfile = paths.figures / 'flare_freq.pdf'

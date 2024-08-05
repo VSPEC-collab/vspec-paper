@@ -7,7 +7,7 @@ https://vspec.readthedocs.io/en/latest/auto_examples/other/star/plot_granulation
 from pathlib import Path
 from astropy import units as u
 import matplotlib.pyplot as plt
-import pypsg
+import libpypsg
 
 from VSPEC import ObservationModel,PhaseAnalyzer
 from VSPEC import params
@@ -20,7 +20,7 @@ outfile = paths.figures / 'granulation_lightcurve.pdf'
 
 SEED = 32
 import setup_psg;setup_psg.setup_psg()
-pypsg.docker.set_url_and_run()
+libpypsg.docker.set_url_and_run()
 
 
 header = params.Header(

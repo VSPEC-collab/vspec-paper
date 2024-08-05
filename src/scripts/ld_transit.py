@@ -7,7 +7,7 @@ from astropy import units as u
 import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import VSPEC
-import pypsg
+import libpypsg
 
 import paths
 
@@ -15,7 +15,7 @@ LAMBERT_CONFIG = paths.scripts / 'ld_lc_lamb.yaml'
 SOLAR_CONFIG = paths.scripts / 'ld_lc_solar.yaml'
 OUTFILE = paths.figures / 'ld_transit.pdf'
 
-pypsg.docker.set_url_and_run()
+libpypsg.docker.set_url_and_run()
 
 lam_model = VSPEC.ObservationModel.from_yaml(LAMBERT_CONFIG)
 sol_model = VSPEC.ObservationModel.from_yaml(SOLAR_CONFIG)

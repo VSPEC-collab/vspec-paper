@@ -14,10 +14,10 @@ from vspec_vsm.flares import FlareGenerator
 from vspec_vsm.star import Star
 from vspec_vsm.config import MSH
 
-import pypsg
+import libpypsg
 
 import setup_psg;setup_psg.setup_psg()
-pypsg.docker.set_url_and_run()
+libpypsg.docker.set_url_and_run()
 
 from VSPEC import ObservationModel,PhaseAnalyzer
 

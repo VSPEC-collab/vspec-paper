@@ -2,7 +2,7 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 from astropy import units as u
-import pypsg
+import libpypsg
 
 from VSPEC import ObservationModel,PhaseAnalyzer
 from VSPEC import params
@@ -12,7 +12,7 @@ import paths
 
 SEED = 1214
 import setup_psg;setup_psg.setup_psg()
-pypsg.docker.set_url_and_run()
+libpypsg.docker.set_url_and_run()
 
 outfile = paths.figures / 'kempton23.pdf'
 

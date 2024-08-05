@@ -4,7 +4,7 @@ When running the GHA it is important that the PSG API key is set.
 
 import os
 
-import pypsg
+import libpypsg
 
 import paths
 
@@ -13,7 +13,7 @@ outfile = paths.output / 'psg_status.txt'
 def setup_psg():
     try:
         key = os.environ['PSG_API_KEY']
-        pypsg.settings.save_settings(api_key=key)
+        libpypsg.settings.save_settings(api_key=key)
         s = 'The PSG API key was set from an environment variable.'
 
     except KeyError:

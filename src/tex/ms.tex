@@ -36,6 +36,7 @@
 \newcommand{\vspec}[1]{\texttt{VSPEC}#1}
 % \def\vspec#{\texttt{VSPEC}}
 
+\newcommand{\urldocsvspec}{\url{https://vspec-collab.github.io/VSPEC/0.6.0/index.html}}
 \newcommand{\urldocsvspecvsm}{\url{https://vspec-vsm.readthedocs.io/en/latest/}}
 \newcommand{\urldocslibpypsg}{\url{https://tedjohnson12.github.io/libpypsg/}}
 \newcommand{\urldocsgridpolator}{\url{https://vspec-collab.github.io/GridPolator/}}
@@ -65,6 +66,8 @@ Greenbelt, MD 20771, USA}
 
 
 \author{Cameron Kelahan}
+\affiliation{Southeastern Universities Research Association, 1201 New York Avenue NW, Suite 430, Washington, DC 20055, USA}
+\affiliation{Center for Research and Exploration in Space Science and Technology, NASA Goddard Space Flight Center, 8800 Greenbelt Road, Greenbelt, MD 20771, USA}
 \affiliation{NASA Goddard Space Flight Center \\
 8800 Greenbelt Rd \\
 Greenbelt, MD 20771, USA}
@@ -84,7 +87,7 @@ Greenbelt, MD 20771, USA}
 8800 Greenbelt Rd \\
 Greenbelt, MD 20771, USA}
 
-\author{Tom Barclay}
+\author{Thomas Barclay}
 \affiliation{NASA Goddard Space Flight Center \\
 8800 Greenbelt Rd \\
 Greenbelt, MD 20771, USA}
@@ -101,7 +104,7 @@ Greenbelt, MD 20771, USA}
 
 % Abstract with filler text
 \begin{abstract}
-    We present the Variable Star PhasE Curve (VSPEC) Collection, a set of Python packages for simulating combined-light spectroscopic observations of 3-dimensional exoplanet atmospheres in the presence of stellar variability and inhomogeneity. \vspec{} uses the Planetary Spectrum Generator's Global Emission Spectra (PSG/GlobES) application along with a custom-built multi-component time-variable stellar model based on an user-defined grid of stellar photosphere models to produce spectroscopic light curves of the planet-host system. \vspec{} can be a useful tool for modeling observations of exoplanets in transiting geometries (primary transit, secondary eclipse) as well as orbital phase curve measurements, and is built in a modular and flexible configuration for easy adaptability to new stellar and planetary model inputs. We additionally present a set of codes developed alongside the core \vspec{} modules, including the stellar surface model generator \texttt{vspec-vsm}, the stellar spectral grid interpolation code GridPolator, and a Python interface for PSG \texttt{libpypsg}.
+    We present the Variable Star PhasE Curve (VSPEC) Collection, a set of Python packages for simulating combined-light spectroscopic observations of 3-dimensional exoplanet atmospheres in the presence of stellar variability and inhomogeneity. \vspec{} uses the Planetary Spectrum Generator's Global Emission Spectra (PSG/GlobES) application along with a custom-built multi-component time-variable stellar model based on a user-defined grid of stellar photosphere models to produce spectroscopic light curves of the planet-host system. \vspec{} can be a useful tool for modeling observations of exoplanets in transiting geometries (primary transit, secondary eclipse) as well as orbital phase curve measurements, and is built in a modular and flexible configuration for easy adaptability to new stellar and planetary model inputs. We additionally present a set of codes developed alongside the core \vspec{} modules, including the stellar surface model generator \texttt{vspec-vsm}, the stellar spectral grid interpolation code GridPolator, and a Python interface for PSG \texttt{libpypsg}.
 \end{abstract}
 
 \keywords{Exoplanet, M dwarf}
@@ -110,7 +113,7 @@ Greenbelt, MD 20771, USA}
 \section{Introduction}
 \label{sec:intro}
 
-In the era of high-sensitivity transiting exoplanet characterization missions such as the Hubble Space Telescope (HST), the James Webb Space Telescope (JWST) and the future Atmospheric Remote-sensing Infrared Exoplanet Large-survey (ARIEL), spectral analysis of exoplanet atmospheres is increasingly sensitive to contamination due to stellar inhomogeneities (e.g. spots, granulation) and stochastic stellar variability (e.g. flares).  As an example, recent analysis of the JWST/NIRSpec transit of GJ 486b by \citet{moran2023} exposed a degeneracy between atmospheric absorption by water and water-rich spots on the stellar surface, and similar effects were seen in the transit spectrum of LHS 1140b \citep{cadieux2024} and many other recent transit measurements iwth JWST \citep[e.g.,][]{lim2023,may2023,fournier-tondreau2024}. This ``transit light source effect'' \citep[TLS,][see also \citet{apai2018,barclay2021,garcia2022,barclay2023}]{rackham2018} occurs when the region of the stellar surface occulted by the transiting planet is not representative of the disk-integrated spectrum.
+In the era of high-sensitivity transiting exoplanet characterization missions such as the Hubble Space Telescope (HST), the James Webb Space Telescope (JWST), and the future Atmospheric Remote-sensing Infrared Exoplanet Large-survey (ARIEL), spectral analysis of exoplanet atmospheres is increasingly sensitive to contamination due to stellar inhomogeneities (e.g. spots, granulation) and stochastic stellar variability (e.g. flares).  As an example, recent analysis of the JWST/NIRSpec transit of GJ 486b by \citet{moran2023} exposed a degeneracy between atmospheric absorption by water and water-rich spots on the stellar surface, and similar effects were seen in the transit spectrum of LHS 1140b \citep{cadieux2024} and many other recent transit measurements with JWST \citep[e.g.,][]{lim2023,may2023,fournier-tondreau2024}. This ``transit light source effect'' \citep[TLS,][see also \citet{apai2018,barclay2021,garcia2022,barclay2023}]{rackham2018} occurs when the region of the stellar surface occulted by the transiting planet is not representative of the disk-integrated spectrum.
 
 Stellar contamination may also cause errors in the extraction of thermal phase curve spectroscopy if the stellar spectrum changes significantly over the period of the planet's orbit; if the variations are non-linear, but only linear interpolation between subsequent secondary eclipses is used to remove the stellar contribution, the resulting planetary flux measurements will not be exclusively representative of the planet's emission. This will be particularly important for observations of planets around more variable stars such as active M-stars or later-type evolved host stars. %the Mid-IR Exoplanet CLimate Explorer \citep[MIRECLE,][]{mandell2022} mission concept will employ the Planetary Infrared Excess \citep[PIE][]{stevenson2020} technique to extract the planetary contribution from combined-light observations. Uncertainties on the stellar spectrum will dominate the analysis if it is not removed appropriately.
 
@@ -171,11 +174,11 @@ Results from PSG in each epoch are stored locally in the \texttt{.fits} format.
 \subsubsection{Phase Sampling}
 Making API calls to PSG can be computationally expensive, especially when trying to resolve small structures in the climate model. In order to reduce unnecessary calls to PSG, the temporal sampling of the planetary spectrum is independent of the stellar model/output sampling. When computing the planetary flux in the output files, the raw PSG output is interpolated and averaged over each time step using the trapezoid integration rule. By default one spectrum is computed with PSG at each interface separating time steps; this eases the calculation of edge effects between steps.
 
-\subsection{Stellar Lightcurve}
+\subsection{Stellar light curve}
 
 The last step is to replace the stellar spectra used by PSG with \vspec{}'s stellar model. In this step \vspec{} acts as a bridge between
 the stellar surface model \texttt{vspec-vsm} (which models spatial changes to the star with time, see Section \ref{sec:star}) and a grid of
-pre-computed stellar spectra (from the GridPolator package; see Section \ref{sec:gridpolator}). The star is initialized and allowed to evolve for a user-specified amount of time in order for spots and faculae to approach growth-decay equilibrium (this is also called the ``burn in'' phase). The star is then evolved at the output cadence, at each epoch generating a set of key-value pairs that describe the surface temperature and coverage fractions of the portion of the stellar disk visible to the observer. These \teff s and coverage fractions are fed into GridPolator to produce composite stellar spectra.
+pre-computed stellar spectra (from the GridPolator package; see Section \ref{sec:gridpolator}). The star is initialized and allowed to evolve for a user-specified amount of time in order for spots and faculae to approach growth-decay equilibrium (this is also called the ``burn in'' phase). The star is then evolved at the output cadence, generating a set of key-value pairs at each epoch that describe the surface temperature and coverage fractions of the portion of the stellar disk visible to the observer. These \teff s and coverage fractions are fed into GridPolator to produce composite stellar spectra.
 
 \subsection{Reflected light}
 \vspec{} then produces a composite spectrum of the portion of the star visible to the planet to accurately incorporate the time-dependent stellar flux into the reflected-light spectrum. To compute the total reflected light in the output files, \vspec{} first divides the reflected light flux from PSG by the PSG stellar model to obtain the apparent albedo (I/F). This albedo is then multiplied by the composite stellar spectrum (facing the planet) to obtain the total reflected flux.
@@ -193,7 +196,7 @@ where $F_*$ is the stellar flux. The total noise associated with the integration
 \end{equation}
 
 \subsection{Transit and Eclipse}
-Users must be careful when using \vspec{} to simulate transit and eclipse measurements because of the vast timescale differences between those events and the typical phase variations of a planet -- a sparsely sampled phase curve that happens to include one epoch of transit will not adequately sample the lightcurve accurately during a transit or eclipse because the interpolator knows no better than to assume a linear interpolation scheme. It is recommended that users use a high cadence for observations of transits and eclipses so that each event will be sampled by more than one point.
+Users must be careful when using \vspec{} to simulate transit and eclipse measurements because of the vast timescale differences between those events and the typical phase variations of a planet -- a sparsely sampled phase curve that happens to include one epoch of transit will not adequately sample the light curve accurately during a transit or eclipse because the interpolator knows no better than to assume a linear interpolation scheme. It is recommended that users use a high cadence for observations of transits and eclipses so that each event will be sampled by more than one point.
 
 In the case of a transiting geometry, \vspec{} computes the spectrum of the occulted portion of the star in order to properly simulate the transit light source effect \citep[TLS][]{rackham2018}. This spectrum is the flux blocked by the planet in the case that it is a solid occulting circle, and therefore produces a flat transmission spectrum. The effect of atmospheric transmission is added by comparing the PSG-computed effective radius to a purely geometric calculation of such a ``bare-rock" transit depth:
 \begin{equation}
@@ -208,6 +211,12 @@ In the case of a total eclipse of the planet, the planetary thermal and reflecte
 \label{sec:libpypsg}
 PSG\footnote{\url{https://psg.gsfc.nasa.gov/}} \citep{villanueva2018} is a powerful radiative transfer tool that is ubiquitous in the exoplanet and solar system atmosphere fields. Either through its web graphical interface, its public API, or the local version available through Docker, PSG allows users to simulate observations of planets, comets, and moons with a variety of geometries and realistic noise models.
 
+\vspec{} uses a Python interface for the PSG API system called \texttt{pypsg}, which is a general stand-alone library built for any Python-based API call to PSG. \texttt{pypsg} draws inspiration from object-relational mapping in frameworks such as Django\footnote{\url{https://www.djangoproject.com/}} to encode a PSG configuration file as a native Python object. Fields of a \texttt{pypsg} data model represent one or more lines of a configuration file, and the two representations are interchangeable without loss of information. Upon creation of this configuration as a \texttt{PyConfig} object, a user can create an \texttt{APICall} instance which handles sending a request to PSG via Python's \texttt{requests}\footnote{\url{https://github.com/psf/requests}} package. This dedicated caller is important in that it reads a user's API key from a known location on disk, removing the possibility that the key could be committed to a public repository.
+
+A powerful feature of \texttt{pypsg} is that it provides a universal interface for 3D atmosphere models and PSG's Global Emission Spectra (GlobES) application.
+GlobES expects 3D data to be presented in a binary data format, and converting a model to this format is non-trivial. \texttt{pypsg}'s \texttt{PyGCM} class provides a native Python representation of GlobES input, and includes built-in methods for converting popular climate models like ExoCAM \citep{wolf2022} and the Whole Atmosphere Community Climate Model \citep[WACCM,][]{marsh2013} to the correct format.
+
+Listing \ref{ls:pypsg} shows a minimal example that uses \texttt{pypsg} to make a call to PSG/GlobES. Here \texttt{pypsg} converts a GCM output from the netCDF format to a \texttt{PyGCM}, which, along with data model classes like \texttt{Target} and \texttt{Observatory}, is used as an argument to construct a \texttt{PyConfig} class instance. This configuration object is then passed to an \texttt{APICall} instance. When the API call is made, the contents of the \texttt{PyConfig} are included in the body of the POST request in the \texttt{file} field. PSG reads this the same as it would if we had written those contents to a file \texttt{config.txt} and passed the \texttt{--data-urlencode file@config.txt} option to \texttt{cURL}, as are the instructions in the PSG handbook \citep[pp. 162-163]{villanueva2022}. More details on use of this library including its API and examples can be found on the \texttt{pypsg} documentation page\footnote{\urldocslibpypsg}.
 
 \begin{lstlisting}[
     language=Python,label={ls:libpypsg},
@@ -289,7 +298,7 @@ a container for objects representing sources of variability such as \texttt{Star
 \subsection{Stellar Surface Grid}
 Sources of variability that exist as major structures on the stellar surface (i.e. spots and faculae) are encoded as deviations from the photospheric effective temperature on a grid of points representing the stellar surface. Each time the fractions of each surface component are calculated, the grid is initialized with constant \teff. The code then iterates through each spot and facula, replacing portions of the grid with the effective temperatures that make up each structure.
 
-The simplest grid to build is one that is rectangular in latitude and longitude, and in which the area that each point represents decreases towards the poles. However, this can lead to unnecessary spatial oversampling at the poles, and may lead to poor resolution at the equator to keep the total number of points from being excessively high. To mitigate these problems \texttt{vspec-vsm} supports a ``grid'' generated using a Fibbonacci spiral to create a near-isotropic distribution of points. This is especially useful when simulating transits, giving optimal sampling at the stellar equator. It is also useful for resolving small structures on the surface, as the number of points needed for a given minimum resolution is greatly reduced.
+The simplest grid to build is one that is rectangular in latitude and longitude, and in which the area that each point represents decreases towards the poles. However, this can lead to unnecessary spatial oversampling at the poles, and may lead to poor resolution at the equator to keep the total number of points from being excessively high. To mitigate these problems, \texttt{vspec-vsm} supports a ``grid'' generated using a Fibbonacci spiral to create a near-isotropic distribution of points. This is especially useful when simulating transits, giving optimal sampling at the stellar equator. It is also useful for resolving small structures on the surface, as the number of points needed for a given minimum resolution is greatly reduced.
 
 
 \begin{figure}
@@ -297,7 +306,7 @@ The simplest grid to build is one that is rectangular in latitude and longitude,
         \includegraphics[width=0.5\textwidth]{figures/surface_map_and_lc.pdf}
     \script{surface_map_and_lc.py}
     \caption{{\bf Top}: The surface map of a star with spots. The star has a photospheric temperature of 3300K, a penumbra temperature of 2700K, and an umbra temperature of 2500K.
-    {\bf Bottom}: An example lightcurve of a spotted star. Flux variations are due to varying spot coverage as a function of sub-observer point. Two rotational periods are shown.
+    {\bf Bottom}: An example light curve of a spotted star. Flux variations are due to varying spot coverage as a function of sub-observer point. Two rotational periods are shown.
     }
     \label{fig:surface_map}
 \end{figure}
@@ -329,7 +338,7 @@ where $A_{\rm min}$ is the area given to each spot when it is initialized. There
 \subsection{Faculae \label{subsec:faculae}}
 Faculae are magnetically-generated regions of the solar surface that usually appear as bright points near the limb; we employ the ``hot wall''
 model \citep{spruit1976} where faculae are described as three-dimensional pores in the stellar surface with a hot, bright wall and a cool, dark floor, as shown in Figure \ref{fig:fac_struct}. Their three-dimensional structure causes faculaes' observational properties to change depending on their angle from disk-center. Close to the limb,
-the hot wall is visible to the observer, and faculae appear as bright points; near the center, however, the cool floor is exposed and faculae appear dark. To consider this effect in the faculae lightcurve, we compute the fraction of each facula's projected area -- the area on the disk it would occupy as seen by the observer -- that is occupied by the hot wall versus the cool floor. Mathematically, this is no different from finding the area of the intersection of two overlapping ellipses, and we use this conceptualization to calculate the contributions of each portion, as described below.
+the hot wall is visible to the observer, and faculae appear as bright points; near the center, however, the cool floor is exposed and faculae appear dark. To consider this effect in the faculae light curve, we compute the fraction of each facula's projected area -- the area on the disk it would occupy as seen by the observer -- that is occupied by the hot wall versus the cool floor. Mathematically, this is no different from finding the area of the intersection of two overlapping ellipses, and we use this conceptualization to calculate the contributions of each portion, as described below.
 
 As shown in Figure \ref{fig:fac_struct}, peering through the top of the pore the observer can see a portion of the hot wall and a portion of the cool floor. Consider an ellipse centered at the origin with semimajor axis $R$ and semiminor axis $\mu R$, oriented so that the semimajor axis points along the $y$-axis. Now consider a second, identical ellipse, displaced along the $x$-axis by some amount $0<d<\mu R$. The intersection of these two ellipses is the portion of the cool floor that is visible, and the area of the second ellipse outside the intersection is the portion of the hot wall that the observer sees. We are not interested in the absolute areas of each of these regions, only how they relate to the total ellipse area $\pi \mu R^2$, and so we can generalize to the case that $\mu=1$ (i.e. circles). This problem is solved for arbitrary circles by \citet{weisstein2004}; the details of their derivation are not relevant to this text, but we use their result to create a function $f(d,R)$ that computes the fraction of a circle with radius $R$ and center $(d,0)$ that is inside the unit circle. For a facula with radius $r$, wall height $h$, and angle from disk center $\theta$, we find that the effective area of the cool floor is:
 \begin{equation}
@@ -369,13 +378,13 @@ Facula lifetimes are defined as the time it takes its radius to decay by $e^{-2}
 \end{figure}
 
 \subsection{Flares \label{subsec:flares}}
-Flares are an important source of stellar variability on short timescales. \texttt{vspec-vsm}'s flare lightcurve model is based on the \texttt{xoflares} package \citep{barclay2020}, which itself is based on empirically derived lightcurve shapes from \citet{davenport2016}. However, \texttt{xoflares} is designed to fit lightcurves in a single spectral band, so we add additional parameters to extend it to a multiwavelength lightcurve. We completely describe a flare using its temperature, total energy, full width at half maximum (FWHM), and the time of its peak. We model a flare as a hot, optically thin region above the photosphere that produces a blackbody spectrum. In this model, the temperature is constant, and the sharp rise and fall seen in the lightcurve is caused by the region's rapidly changing area. This simplification allows the total flare energy $E$ to be used as a normalization factor:
+Flares are an important source of stellar variability on short timescales. \texttt{vspec-vsm}'s flare light curve model is based on the \texttt{xoflares} package \citep{barclay2020}, which itself is based on empirically derived light curve shapes from \citet{davenport2016}. However, \texttt{xoflares} is designed to fit light curves in a single spectral band, so we add additional parameters to extend it to a multiwavelength light curve. We completely describe a flare using its temperature, total energy, full width at half maximum (FWHM), and the time of its peak. We model a flare as a hot, optically thin region above the photosphere that produces a blackbody spectrum. In this model, the temperature is constant, and the sharp rise and fall seen in the light curve is caused by the region's rapidly changing area. This simplification allows the total flare energy $E$ to be used as a normalization factor:
 \begin{equation}
     \int_{-\infty}^{\infty}A\,dt = \frac{E}{\sigma T^4}
 \end{equation}
-where $A$ is the time-dependent area of the flare region, $T$ is the constant flare temperature, and $\sigma$ is the Stefan-Boltzmann constant. This allows flare lightcurves to be produced with a fixed bolometric luminosity. Because the temperature is fixed, the relevant quantity for modeling the flux of a flare in a given integration is the integrated time-area $\int A\,dt$. These quantities are computed numerically and fed to \vspec{} along with $T$ to produce spectra with the appropriate absolute flux.
+where $A$ is the time-dependent area of the flare region, $T$ is the constant flare temperature, and $\sigma$ is the Stefan-Boltzmann constant. This allows flare light curves to be produced with a fixed bolometric luminosity. Because the temperature is fixed, the relevant quantity for modeling the flux of a flare in a given integration is the integrated time-area $\int A\,dt$. These quantities are computed numerically and fed to \vspec{} along with $T$ to produce spectra with the appropriate absolute flux.
 
-Before simulating an observation, \vspec{} asks \texttt{vspec-vsm} to pre-compute a population of flares based on a power-law frequency-energy relationship based on Kepler and TESS lightcurves \citep{gao2022}:
+Before simulating an observation, \vspec{} asks \texttt{vspec-vsm} to pre-compute a population of flares based on a power-law frequency-energy relationship based on Kepler and TESS light curves \citep{gao2022}:
 \begin{equation} \label{eq:flare_freq}
     \log{(f/{\rm [day]})} = \beta + \alpha~\log{(E/{\rm [erg]})}
 \end{equation}
@@ -389,7 +398,7 @@ where $E_{\text{min}}$ is the minimum considered flare energy and $X$ is a rando
     \centering
     \includegraphics[width=0.5\textwidth]{figures/flare_freq.pdf}
     \caption{
-        {\bf Top}: Generated flare frequencies compared to those expected from \citet{gao2022}, generated using a 10,000 day simulation. The $y$-axis shows the frequency of flares with energies greater than or equal to the value of the $x$-axis. Error bars based on the square root of the number of observed flares as this is a Poisson process. {\bf Bottom}: Lightcurve of a star flaring with the same power-law slope as the top panel, but the intercept ($\beta$) has been increased by 0.3 for visual effect. The mean flare temperature is $9000$ K and the mean FWHM is $3$ hours.
+        {\bf Top}: Generated flare frequencies compared to those expected from \citet{gao2022}, generated using a 10,000 day simulation. The $y$-axis shows the frequency of flares with energies greater than or equal to the value of the $x$-axis. Error bars based on the square root of the number of observed flares as this is a Poisson process. {\bf Bottom}: light curve of a star flaring with the same power-law slope as the top panel, but the intercept ($\beta$) has been increased by 0.3 for visual effect. The mean flare temperature is $9000$ K and the mean FWHM is $3$ hours.
         }
     \script{flare_freq.py}
     \label{fig:flare_freq}
@@ -405,7 +414,7 @@ inter-granule surface; the surface coverage of the cool region at any given time
     \centering
     \includegraphics[width=0.5\textwidth]{figures/granulation_lightcurve.pdf}
     \caption{
-        Effect of granulation on the lightcurve of a star. The parameters chosen in this simulation mean that, on average, 10\% of the stellar surface is covered by the cool, inter-granule region with a temperature 300K lower than the surrounding photosphere, and that this coverage varies by about 1\% on a timescale of 6 hours.
+        Effect of granulation on the light curve of a star. The parameters chosen in this simulation mean that, on average, 10\% of the stellar surface is covered by the cool, inter-granule region with a temperature 300K lower than the surrounding photosphere, and that this coverage varies by about 1\% on a timescale of 6 hours.
         }
     \script{granule_lc.py}
     \label{fig:gran_lc}
@@ -417,14 +426,14 @@ inter-granule surface; the surface coverage of the cool region at any given time
     \centering
     \includegraphics[width=\textwidth]{figures/ld_transit.pdf}
     \caption{
-        {\bf Right}: Transit lightcurves at 1 ${\rm \mu m}$ for a Lambertian (i.e. no limb darkening) star and one with significant limb darkening \citep[$u_1=0.5,\,u_2=0.15$,][]{espinoza2015}. In each case a 1 $R_e$ planet transits a 0.12 $R_\odot$ ($T_{\rm eff} = 3000$ K) star with an observation cadence of 1 minute. Scattered points show the observation with simulated noise, considering a single wavelength channel from JWST/NIRSpec G395H binned to a resolving power of 270 and a target distance of 5 pc.
+        {\bf Right}: Transit light curves at 1 ${\rm \mu m}$ for a Lambertian (i.e. no limb darkening) star and one with significant limb darkening \citep[$u_1=0.5,\,u_2=0.15$,][]{espinoza2015}. In each case a 1 $R_e$ planet transits a 0.12 $R_\odot$ ($T_{\rm eff} = 3000$ K) star with an observation cadence of 1 minute. Scattered points show the observation with simulated noise, considering a single wavelength channel from JWST/NIRSpec G395H binned to a resolving power of 270 and a target distance of 5 pc.
         {\bf Left}: Stellar surface maps including translucent masks to show limb darkening and transit. The Lambertian star (top) does not exhibit any limb darkening, and its disk has constant surface brightness. However, the limb-darkened star (bottom) is much brighter at disk-center than it is near the limb. The dark circle on the leftmost limb of each star is the region occulted by the planet when it is $0.7^\circ$ from mid-transit.
     }
     \script{ld_transit.py}
     \label{fig:ld_transit}
 \end{figure*}
 
-In the case of a transiting geometry, \texttt{vspec-vsm} is responsible for computing the properties of the portion of the stellar disk that is occulted. It does this by first projecting both the transiting planet and the visible part of the surface orthographically as they would be viewed by a distant observer. It then selects all the points that are near enough to the transit to be occulted. The code then iterates through each of those points and computes the fraction of it covered by the occulting circle using a 2D numerical integral. The weight of each point is determined by the geometric projected area as well as a quadratic limb darkening law \citep[see][]{espinoza2015}. This treatment allows the user to specify two parameters $u_1$ and $u_2$ that describe the flux variation as a function of angle from disk-center. A caveat of this method is that there is no dependence on wavelength. A better treatment would vary the temperature of the stellar model as a function of $\mu$; we simply apply a gray scaling factor to the flux. Figure \ref{fig:ld_transit} compares transit lightcurves for two different sets of limb darkening parameters.
+In the case of a transiting geometry, \texttt{vspec-vsm} is responsible for computing the properties of the portion of the stellar disk that is occulted. It does this by first projecting both the transiting planet and the visible part of the surface orthographically as they would be viewed by a distant observer. It then selects all the points that are near enough to the transit to be occulted. The code then iterates through each of those points and computes the fraction of it covered by the occulting circle using a 2D numerical integral. The weight of each point is determined by the geometric projected area as well as a quadratic limb darkening law \citep[see][]{espinoza2015}. This treatment allows the user to specify two parameters $u_1$ and $u_2$ that describe the flux variation as a function of angle from disk-center. A caveat of this method is that there is no dependence on wavelength. A better treatment would vary the temperature of the stellar model as a function of $\mu$; we simply apply a gray scaling factor to the flux. Figure \ref{fig:ld_transit} compares transit light curves for two different sets of limb darkening parameters.
 
 
 \section{Stellar Spectral Grids}
@@ -446,7 +455,7 @@ GridPolator grids can be built arbitrarily by the user, but the package comes wi
 % The second grid is hosted by the Space Telescope Science Institute\footnote{\url{https://archive.stsci.edu/hlsps/reference-atlases/cdbs/grid/phoenix/}}. This grid covers a much larger stellar parameter space, with metallicities ranging from $-4$ to $0.5$, \teff from 2000K to 70\,000K, and $\log{g}$ from 0 to 5.5. These models are also produced by the \texttt{PHOENIX} code. Except for the solar metallicity models, the spectra were computed in 2011 by \citet{allard2003, allard2007} and the solar metallicity models were updated by a new version of \texttt{PHOENIX} in 2021 \citep{allard2012}. \TJ{Look up wavelength ranges}
 When the grid is initialized, GridPolator looks for the relevant data files on the user's local system. If they are not present, then the files are downloaded and stored in \texttt{\textasciitilde /.gridpolator/grids/}. 
 
-Within this suite of codes, GridPolator has the added responsibility of binning spectra and producing wavelength axes that match those output by PSG. Wavelength sampling is done using constant resolving power $R=\frac{\lambda}{\Delta \lambda}$. The binning algorithm takes a pair of high-resolution flux and wavelength arrays and resamples the flux to a lower-resolution wavelength axis. PSG specifies the central wavelength of each channel, and so this algorithm defines bin edges to be $\lambda_{\rm cen} \pm \frac{\lambda_{\rm cen}}{R}$.
+Within this suite of codes, GridPolator has the added responsibility of binning spectra and producing wavelength axes that match those output by PSG. Wavelength sampling is done using a constant resolving power $R=\frac{\lambda}{\Delta \lambda}$. The binning algorithm takes a pair of high-resolution flux and wavelength arrays and resamples the flux to a lower-resolution wavelength axis. PSG specifies the central wavelength of each channel, and so this algorithm defines bin edges to be $\lambda_{\rm cen} \pm \frac{\lambda_{\rm cen}}{R}$.
 
 \section{Simplified Climate Model}
 \label{sec:vspec-gcm}
@@ -597,7 +606,7 @@ We assume the star behaves linearly between eclipse measurements and attribute a
     \includegraphics[width=0.5\textwidth]{figures/kempton23.pdf}
     \caption{
         MIRI phase curves for GJ 1214b binned by wavelength. Compare to \citet{kempton2023} Extended Data Figure 1.
-        While the addition of stellar variability does have a visible effect on the lightcurve, it is much smaller than the thermal emission by the exoplanet.
+        While the addition of stellar variability does have a visible effect on the light curve, it is much smaller than the thermal emission by the exoplanet.
         }
     \script{kempton23.py}
     \label{fig:gj1214b}

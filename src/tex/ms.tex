@@ -337,7 +337,7 @@ where $A_{\rm min}$ is the area given to each spot when it is initialized. There
 
 \subsection{Faculae \label{subsec:faculae}}
 Faculae are magnetically-generated regions of the solar surface that usually appear as bright points near the limb; we employ the ``hot wall''
-model \citep{spruit1976} where faculae are described as three-dimensional pores in the stellar surface with a hot, bright wall and a cool, dark floor, as shown in Figure \ref{fig:fac_struct}. Their three-dimensional structure causes faculaes' observational properties to change depending on their angle from disk-center. Close to the limb,
+model \citep{spruit1976} where faculae are described as three-dimensional pores in the stellar surface with a hot, bright wall and a cool, dark floor, as shown in Figure \ref{fig:fac_struct}. Their three-dimensional structure causes faculae's observational properties to change depending on their angle from disk-center. Close to the limb,
 the hot wall is visible to the observer, and faculae appear as bright points; near the center, however, the cool floor is exposed and faculae appear dark. To consider this effect in the faculae light curve, we compute the fraction of each facula's projected area -- the area on the disk it would occupy as seen by the observer -- that is occupied by the hot wall versus the cool floor. Mathematically, this is no different from finding the area of the intersection of two overlapping ellipses, and we use this conceptualization to calculate the contributions of each portion, as described below.
 
 As shown in Figure \ref{fig:fac_struct}, peering through the top of the pore the observer can see a portion of the hot wall and a portion of the cool floor. Consider an ellipse centered at the origin with semimajor axis $R$ and semiminor axis $\mu R$, oriented so that the semimajor axis points along the $y$-axis. Now consider a second, identical ellipse, displaced along the $x$-axis by some amount $0<d<\mu R$. The intersection of these two ellipses is the portion of the cool floor that is visible, and the area of the second ellipse outside the intersection is the portion of the hot wall that the observer sees. We are not interested in the absolute areas of each of these regions, only how they relate to the total ellipse area $\pi \mu R^2$, and so we can generalize to the case that $\mu=1$ (i.e. circles). This problem is solved for arbitrary circles by \citet{weisstein2004}; the details of their derivation are not relevant to this text, but we use their result to create a function $f(d,R)$ that computes the fraction of a circle with radius $R$ and center $(d,0)$ that is inside the unit circle. For a facula with radius $r$, wall height $h$, and angle from disk center $\theta$, we find that the effective area of the cool floor is:
@@ -364,7 +364,7 @@ where $r$ is the radius of the facula, $r_{\rm min}$ is the minimum radius where
 \end{equation}
 where $\Delta T_{\rm eff,wall,0}$ is the temperature of a zero-radius facula and $m_{\rm wall}$ is the slope of the radius-temperature relationship with units of [temperature] [length]$^{-1}$. These relationships can be defined by the user, for example setting $m=0$ for constant temperatures.
 
-Facula lifetimes are defined as the time it takes its radius to decay by $e^{-2}$. Because faculae grow and decay exponentially at the same rate, each facula spends one lifetime with a radius greater than $e^{-1}$ of its maximum. Each facula is born and dies at a radius of $e^{-2}$ of its maximum, effectively existing in the code for two lifetimes. \citet{hovis-afflerbach2022} suggest a typical facula lifetime to be on the order of 6 hours, with a distribution that resembles a Poisson function; however, we choose a lognormal distribution for both lifetime and maximum radius because it does not allow for these values to be 0. We choose to correlate lifetime and radius so that they are determined by a normalized random distribution - for each new facula, a value is randomly drawn and determines both the facula lifetime and maximum radius.
+Facula lifetimes are defined as the time it takes its radius to decay by $e^{-2}$. Because faculae grow and decay exponentially at the same rate, each facula spends one lifetime with a radius greater than $e^{-1}$ of its maximum. Each facula is born and dies at a radius of $e^{-2}$ of its maximum, effectively existing in the code for two lifetimes. \citet{hovis-afflerbach2022} suggest a typical facula lifetime to be on the order of 6 hours, with a distribution that resembles a Poisson function; however we choose a log-normal distribution for both lifetime and maximum radius because it does not allow for these values to be 0. We choose to correlate lifetime and radius so that they are determined by a normalized random distribution - for each new facula, a value is randomly drawn and determines both the facula lifetime and maximum radius.
 
 \begin{figure}
     \centering
@@ -451,7 +451,7 @@ In the case of a transiting geometry, \texttt{vspec-vsm} is responsible for comp
 
 \vspec{} utilizes a library of pre-computed stellar models for producing its multi-component composite stellar spectrum; detailed stellar spectral models are computationally expensive to generate, so it is more efficient to interpolate over a discretized grid. This interpolation is handled by the VSPEC-related Python package GridPolator, whose main class \texttt{GridSpectra} acts as a wrapper for the SciPy \citep{virtanen2020} or JAX \citep{jamesbradbury2018} \texttt{RegularGridInterpolator} with a specialized API. This setup accomodates spectral grids of arbitrary dimension, and treats the wavelength axis independently of the other parameters so that each wavelength channel is independent. When a \texttt{Gridspectra} instance's \texttt{evaluate()} method is called, it creates a \texttt{RegularGridInterpolator} instance for each wavelength channel, evaluates that interpolator, and then resamples the returned spectrum at the requested wavelength points. In the case that the JAX implementation is used, the portion of \texttt{evaluate()} that does the interpolation is just-in-time (JIT) compiled to dramatically improve performance on subsequent calls. Figure \ref{fig:jax_v_scipy} compares the computational cost of JAX with that of SciPy.
 
-GridPolator grids can be built arbitrarily by the user, but the package comes with a built-in custom grid of \texttt{PHOENIX} stellar models \citep{allard1994,hauschildt1999,husser2013} created specifically for \vspec{}. Each spectrum spans from 0.1 to 20 microns in steps of $5\times10^{-6}$ microns. The stellar atmospheres used to create the spectra have solar metallicity and a $\log{g}$ of 5.0, with effective temperatures ranging from 2300K to 3900K in steps of 100K. Currently this is the only grid currently supported by \vspec{}, with support for additional grids planned in future releases.
+GridPolator grids can be built arbitrarily by the user, but the package comes with a built-in custom grid of \texttt{PHOENIX} stellar models \citep{allard1994,hauschildt1999,husser2013} created specifically for \vspec{}. Each spectrum spans from 0.1 to 20 microns in steps of $5\times10^{-6}$ microns. The stellar atmospheres used to create the spectra have solar metallicity and a $\log{g}$ of 5.0, with effective temperatures ranging from 2300K to 3900K in steps of 100K. This is the only grid currently supported by \vspec{}, with support for additional grids planned in future releases.
 % The second grid is hosted by the Space Telescope Science Institute\footnote{\url{https://archive.stsci.edu/hlsps/reference-atlases/cdbs/grid/phoenix/}}. This grid covers a much larger stellar parameter space, with metallicities ranging from $-4$ to $0.5$, \teff from 2000K to 70\,000K, and $\log{g}$ from 0 to 5.5. These models are also produced by the \texttt{PHOENIX} code. Except for the solar metallicity models, the spectra were computed in 2011 by \citet{allard2003, allard2007} and the solar metallicity models were updated by a new version of \texttt{PHOENIX} in 2021 \citep{allard2012}. \TJ{Look up wavelength ranges}
 When the grid is initialized, GridPolator looks for the relevant data files on the user's local system. If they are not present, then the files are downloaded and stored in \texttt{\textasciitilde /.gridpolator/grids/}. 
 
@@ -464,7 +464,7 @@ Within this suite of codes, GridPolator has the added responsibility of binning 
 However, as a full global circulation model can take days to months to converge, there are many cases where a ``quick and dirty'' 3D climate model may be sufficient. Built into \vspec{} is such a ``faux'' climate model -- one that does not contain any of the circulation physics of the above sophisticated codes, but instead constructs a 3D planetary atmosphere in a fraction of a second from just a few parameters. Such a model can also be advantageous because it is extremely predictable; a feature in the phase curve can easily be traced back to the model parameters that cause it.
 
 The \vspec{} GCM centers around a 2D temperature map of the planet's surface. Based on \citet{cowan2011}, this map
-is determined exclusively by the incident flux from the star (parameterized by the host \teff~and radius
+is determined exclusively by the incident flux from the star (parameterized by the host \teff~and radius,
 and the planet's semimajor axis and Bond albedo) and the unitless thermal redistribution efficiency $\epsilon$.
 This efficiency is 0 for a planet that re-radiates instantly and $\gg 1$ for an atmosphere that efficiently redistributes heat to its night side. Figure \ref{fig:thermal_inertia} shows a temperature map example for an Earth-like planet with $\epsilon = 2\pi$. These temperature maps are validated by the energy balance of the planet; \vspec{} computes the incident and emergent flux across the planet and issues a warning if they are not in agreement.
 
@@ -489,7 +489,7 @@ Where $\tilde{T}$ is the dimensionless temperature defined as $T/T_0$, or the te
     \includegraphics[width=0.5\textwidth]{figures/cowan_fig1.pdf}
     \caption{
         {\bf Top}: Reproduction of \citet{cowan2011} Figure 1 using the methods described in the text. These curves show the dimensionless temperature at the equator of a planet as a function of angle from substellar point $\Phi$ for thermal inertia $\epsilon$. Note that the $\epsilon=0$ curve in the original figure is replaced with $\epsilon=10^{-4}$ (see explanation in the text), and we do not include additional curves for mid-latitudes as in the original figure. As $\epsilon$ increases, heat is moved from the dayside onto the nightside and the temperature maximum shifts away from the substellar point.
-        {\bf Bottom}: Relative surface temperature as a function of latitude $\lambda$ for varying latitudinal mixing parameter $\alpha$. A value of 1 means the equatorial temperature as computed in the upper panel. Without mixing ($\alpha=0$) heat is concentrated at the Equator. However, as $\alpha$ increases, the equator cools and heat is redistributed towards the poles.
+        {\bf Bottom}: Relative surface temperature as a function of latitude $\lambda$ for varying latitudinal mixing parameter $\alpha$. A value of 1 means the equatorial temperature, as computed in the upper panel. Without mixing ($\alpha=0$), heat is concentrated at the equator. However, as $\alpha$ increases, the equator cools and heat is redistributed towards the poles.
     }
     \script{cowan_fig.py}
     \label{fig:cowan_curves}
@@ -497,7 +497,7 @@ Where $\tilde{T}$ is the dimensionless temperature defined as $T/T_0$, or the te
 
 \subsection{Extending to 3 Dimensions}
 
-The treatment by \citet{cowan2011} includes no mixing in the latitudinal direction, nor a vertical temperature profile; to allow for variations in pressure and inclination, we augment their treatment with several simple approximations for latitudinal and vertical temperature variations. 
+The treatment by \citet{cowan2011} includes no mixing in the latitudinal direction, nor a vertical temperature profile. To allow for variations in pressure and inclination, we augment their treatment with several simple approximations for latitudinal and vertical temperature variations. 
 
 We add a parameter $\alpha$ that is defined by the ratio between the polar temperature and the equatorial temperature at any given longitude. We define $f(\lambda;\alpha)$ to be the temperature as a function of latitude $\lambda$ at an arbitrary longitude; therefore if the surface is in equilibrium, the energy balance requires the outgoing energy flux to be independent of $\alpha$:
 \begin{equation}
@@ -508,7 +508,7 @@ where $E_{\rm out}$ is the outbound energy flux of an infinitesimal sliver of di
 \begin{equation}
     f(\lambda; 0) = f(0;0) \cos^{1/4}{\lambda}
 \end{equation}
-where $f(0;0)$ is the previously computed temperature at the equator (see Figure \ref{fig:cowan_curves}). Plugging this in to Equation (\ref{eq:e_out}), we see
+where $f(0;0)$ is the previously computed temperature at the equator (see Figure \ref{fig:cowan_curves}). Plugging this into Equation (\ref{eq:e_out}), we see
 \begin{equation}
     \label{eq:nomix}
     \begin{array}{cl}
@@ -545,7 +545,7 @@ Combining Equation (\ref{eq:temp_gen}) with the numerically-computed equatorial 
     T_z = T_{\rm surf}\,\left( \frac{P_z}{P_{\rm surf}} \right)^{1-\frac{1}{\gamma}}
 \end{equation}
 
-Finally, we populate our atmosphere with molecules. The user specifies the species and abundance and atmosphere is filled accordingly with a constant molecular suite.
+Finally, we populate our atmosphere with molecules. The user specifies the species and abundance, and the atmosphere is filled accordingly with a constant molecular suite.
 
 \section{Examples \label{sec:examples}}
 
@@ -644,7 +644,7 @@ stellar contamination in other exoplanetary systems in order to judge fitness as
 \label{sec:conclusion}
 We present a suite of codes to model observations of exoplanets with 3D atmospheres orbiting variable stars. The main package, \vspec{}, produces combined-light phase curves by interfacing with an ensemble of support packages whose responsibilities range from grid interpolation to interfacing with PSG. These codes are all open-source and available to the public on GitHub and the Python package index, PyPI.
 
-While development is ongoing, these codes are all stable. Future work on \vspec{} will concern improving performance so that it can be used to produce phase-curve grids for retrievals. A goal of \texttt{vspec-vsm} development should be to create a common API between it and more physics-based stellar models so that \vspec{} can interface with those models as well. GridPolator is currently in the process of adding support for more built-in stellar grids, these more complex and covering a larger range of spectral types that the current \vspec{} grid. \texttt{libpypsg} has the most to offer the exoplanet community as a stand-alone package, but currently lacks support for much of the data that PSG is capable of producing. Its development so far has focused around the \vspec{} use case, so future work will center around making it more useful to the majority of PSG users.
+While development is ongoing, these codes are all stable. Future work on \vspec{} will concern improving performance so that it can be used to produce phase-curve grids for retrievals. A goal of \texttt{vspec-vsm} development should be to create a common API between it and more physics-based stellar models, so that \vspec{} can interface with those models as well. GridPolator is currently in the process of adding support for more built-in stellar grids, these more complex and covering a larger range of spectral types that the current \vspec{} grid. \texttt{libpypsg} has the most to offer the exoplanet community as a stand-alone package, but currently lacks support for much of the data that PSG is capable of producing. Its development so far has focused around the \vspec{} use case, so future work will center around making it more useful to the majority of PSG users.
 
 
 \section{Acknowledgements}

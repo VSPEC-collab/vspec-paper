@@ -212,7 +212,7 @@ def get_lc(data:PhaseAnalyzer,w1:u.Quantity,w2:u.Quantity):
 
 bin_edges = np.arange(5.0,12.0,0.5)
 n_ax = len(bin_edges)
-fig,axes = plt.subplots(n_ax,1,figsize=(4,10),sharex=True)
+fig,axes = plt.subplots(n_ax,1,figsize=(4,8.5),sharex=True)
 for edge,ax in zip(bin_edges,axes):
     w1,w2 = edge*u.um,(edge+0.5)*u.um
     quiet_lc = get_lc(data_quiet,w1,w2)

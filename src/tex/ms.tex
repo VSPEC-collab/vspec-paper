@@ -449,7 +449,7 @@ In the case of a transiting geometry, \texttt{vspec-vsm} is responsible for comp
     \label{fig:jax_v_scipy}
 \end{figure}
 
-\vspec{} utilizes a library of pre-computed stellar models for producing its multi-component composite stellar spectrum; detailed stellar spectral models are computationally expensive to generate, so it is more efficient to interpolate over a discretized grid. This interpolation is handled by the VSPEC-related Python package GridPolator, whose main class \texttt{GridSpectra} acts as a wrapper for the SciPy \citep{virtanen2020} or JAX \citep{jamesbradbury2018} \texttt{RegularGridInterpolator} with a specialized API. This setup accomodates spectral grids of arbitrary dimension, and treats the wavelength axis independently of the other parameters so that each wavelength channel is independent. When a \texttt{Gridspectra} instance's \texttt{evaluate()} method is called, it creates a \texttt{RegularGridInterpolator} instance for each wavelength channel, evaluates that interpolator, and then resamples the returned spectrum at the requested wavelength points. In the case that the JAX implementation is used, the portion of \texttt{evaluate()} that does the interpolation is just-in-time (JIT) compiled to dramatically improve performance on subsequent calls. Figure \ref{fig:jax_v_scipy} compares the computational cost of JAX with that of SciPy.
+\vspec{} utilizes a library of pre-computed stellar models for producing its multi-component composite stellar spectrum; detailed stellar spectral models are computationally expensive to generate, so it is more efficient to interpolate over a discretized grid. This interpolation is handled by the VSPEC-related Python package GridPolator, whose main class \texttt{GridSpectra} acts as a wrapper for the SciPy \citep{virtanen2020} or JAX \citep{bradbury2018} \texttt{RegularGridInterpolator} with a specialized API. This setup accomodates spectral grids of arbitrary dimension, and treats the wavelength axis independently of the other parameters so that each wavelength channel is independent. When a \texttt{Gridspectra} instance's \texttt{evaluate()} method is called, it creates a \texttt{RegularGridInterpolator} instance for each wavelength channel, evaluates that interpolator, and then resamples the returned spectrum at the requested wavelength points. In the case that the JAX implementation is used, the portion of \texttt{evaluate()} that does the interpolation is just-in-time (JIT) compiled to dramatically improve performance on subsequent calls. Figure \ref{fig:jax_v_scipy} compares the computational cost of JAX with that of SciPy.
 
 GridPolator grids can be built arbitrarily by the user, but the package comes with a built-in custom grid of \texttt{PHOENIX} stellar models \citep{allard1994,hauschildt1999,husser2013} created specifically for \vspec{}. Each spectrum spans from 0.1 to 20 microns in steps of $5\times10^{-6}$ microns. The stellar atmospheres used to create the spectra have solar metallicity and a $\log{g}$ of 5.0, with effective temperatures ranging from 2300K to 3900K in steps of 100K. This is the only grid currently supported by \vspec{}, with support for additional grids planned in future releases.
 % The second grid is hosted by the Space Telescope Science Institute\footnote{\url{https://archive.stsci.edu/hlsps/reference-atlases/cdbs/grid/phoenix/}}. This grid covers a much larger stellar parameter space, with metallicities ranging from $-4$ to $0.5$, \teff from 2000K to 70\,000K, and $\log{g}$ from 0 to 5.5. These models are also produced by the \texttt{PHOENIX} code. Except for the solar metallicity models, the spectra were computed in 2011 by \citet{allard2003, allard2007} and the solar metallicity models were updated by a new version of \texttt{PHOENIX} in 2021 \citep{allard2012}. \TJ{Look up wavelength ranges}
@@ -588,6 +588,17 @@ this is due to a temporary increase in the spotted fraction of the surface relat
 the planet we might see similar features inverted to mimic emission.
 
 \subsection{Phase Curve}
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/kempton23.pdf}
+    \caption{
+        MIRI phase curves for GJ 1214b binned by wavelength. Compare to \citet{kempton2023} Extended Data Figure 1.
+        While the addition of stellar variability does have a visible effect on the light curve, it is much smaller than the thermal emission by the exoplanet.
+        }
+    \script{kempton23.py}
+    \label{fig:gj1214b}
+\end{figure}
+
 Analysis of JWST MIRI-LRS phase curves of GJ 1214b by \citet{kempton2023} did not consider stellar
 contamination because of the slow rotation rate of the host star \citep[approximately 1/80$^{\text{th}}$ the orbital frequency,][]{cloutier2021}.
 In this example we simulate this system using \vspec{} and find that this is a reasonable assumption.
@@ -600,17 +611,6 @@ We initialized two stellar models: one with nothing more than a 3250 K surface, 
 
 After running the \vspec{} simulations, we bin into 0.5 $\mu m$ wavelength channels and normalize each channel to the two eclipses.
 We assume the star behaves linearly between eclipse measurements and attribute any deviation to the planet.
-
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/kempton23.pdf}
-    \caption{
-        MIRI phase curves for GJ 1214b binned by wavelength. Compare to \citet{kempton2023} Extended Data Figure 1.
-        While the addition of stellar variability does have a visible effect on the light curve, it is much smaller than the thermal emission by the exoplanet.
-        }
-    \script{kempton23.py}
-    \label{fig:gj1214b}
-\end{figure}
 
 We show in Figure \ref{fig:gj1214b} that the stellar properties assumed in this example do not generate enough contamination to
 significantly change the observed phase curve of GJ 1214b. At it's worst (i.e. near transit) the observed spectrum varies by 50 ppm due to stellar
@@ -644,11 +644,22 @@ stellar contamination in other exoplanetary systems in order to judge fitness as
 \label{sec:conclusion}
 We present a suite of codes to model observations of exoplanets with 3D atmospheres orbiting variable stars. The main package, \vspec{}, produces combined-light phase curves by interfacing with an ensemble of support packages whose responsibilities range from grid interpolation to interfacing with PSG. These codes are all open-source and available to the public on GitHub and the Python package index, PyPI.
 
-While development is ongoing, these codes are all stable. Future work on \vspec{} will concern improving performance so that it can be used to produce phase-curve grids for retrievals. A goal of \texttt{vspec-vsm} development should be to create a common API between it and more physics-based stellar models, so that \vspec{} can interface with those models as well. GridPolator is currently in the process of adding support for more built-in stellar grids, these more complex and covering a larger range of spectral types that the current \vspec{} grid. \texttt{libpypsg} has the most to offer the exoplanet community as a stand-alone package, but currently lacks support for much of the data that PSG is capable of producing. Its development so far has focused around the \vspec{} use case, so future work will center around making it more useful to the majority of PSG users.
+While all of these codes are stable, development is ongoing. Future work on \vspec{} will concern improving performance so that it can be used to produce phase-curve grids for retrievals. In general, a phase curve retrieval will not require the stellar portion of VSPEC's output, and if there is no need for both thermal and reflected spectra, then only one PSG calculation is required per epoch. This could reduce \vspec{}'s computational cost by approximately a factor of 4 purely by skipping unnecessary steps.
+
+A goal of \texttt{vspec-vsm} development should be to create a common API between it and more physics-based stellar models, so that \vspec{} can interface with those models as well. GridPolator is currently in the process of adding support for more built-in stellar grids, these more complex and covering a larger range of spectral types that the current \vspec{} grid. However, as the size of these grids grows, it becomes less efficient to build the grid prior to each run. Future versions will support caching of grids locally using standard Python object serialization libraries such as \texttt{pickle}\footnote{\url{https://docs.python.org/3/library/pickle.html}}. This method would allow interpolator objects to be recalled nearly instantly (limited by hard drive read speeds) rather than the expensive process of re-computation.
+
+\texttt{libpypsg} has the most to offer the exoplanet community as a stand-alone package, but currently lacks support for much of the data that PSG is capable of producing. Its development so far has focused around the \vspec{} use case, so future work will center around making it more useful to the majority of PSG users.
 
 
 \section{Acknowledgements}
-The authors would like to thank Peter Hauschildt for generating a custom grid of PHOENIX models.
+The authors would like to thank Peter Hauschildt for generating a custom grid of PHOENIX stellar models.
+
+This manuscript was typeset using the open-science software \showyourwork, which makes the entire manuscript, including each figure, completely reproducible by anyone with access to the git repository at \url{https://github.com/VSPEC-Collab/vspec-paper}.
+
+This work made use of Astropy:\footnote{\url{http://www.astropy.org}} a community-developed core Python package and an ecosystem of tools and resources for astronomy \citep{astropycollaboration2013,astropycollaboration2018,astropycollaboration2022}.
+
+
+The figures in this article were created using the Matplotlib \citep{hunter2007}, NumPy \citep{harris2020}, and Cartopy \citep{metoffice2010} libraries.
 
 \bibliography{syw,VSPEC}
 

@@ -104,7 +104,7 @@ Greenbelt, MD 20771, USA}
 
 % Abstract with filler text
 \begin{abstract}
-    We present the Variable Star PhasE Curve (VSPEC) Collection, a set of Python packages for simulating combined-light spectroscopic observations of 3-dimensional exoplanet atmospheres in the presence of stellar variability and inhomogeneity. \vspec{} uses the Planetary Spectrum Generator's Global Emission Spectra (PSG/GlobES) application along with a custom-built multi-component time-variable stellar model based on a user-defined grid of stellar photosphere models to produce spectroscopic light curves of the planet-host system. \vspec{} can be a useful tool for modeling observations of exoplanets in transiting geometries (primary transit, secondary eclipse) as well as orbital phase curve measurements, and is built in a modular and flexible configuration for easy adaptability to new stellar and planetary model inputs. We additionally present a set of codes developed alongside the core \vspec{} modules, including the stellar surface model generator \texttt{vspec-vsm}, the stellar spectral grid interpolation code GridPolator, and a Python interface for PSG \texttt{libpypsg}.
+    We present the Variable Star PhasE Curve (\texttt{VSPEC}) Collection, a set of Python packages for simulating combined-light spectroscopic observations of 3-dimensional exoplanet atmospheres in the presence of stellar variability and inhomogeneity. \texttt{VSPEC} uses the Planetary Spectrum Generator's Global Emission Spectra (PSG/GlobES) application along with a custom-built multi-component time-variable stellar model based on a user-defined grid of stellar photosphere models to produce spectroscopic light curves of the planet-host system. \texttt{VSPEC} can be a useful tool for modeling observations of exoplanets in transiting geometries (primary transit, secondary eclipse) as well as orbital phase curve measurements, and is built in a modular and flexible configuration for easy adaptability to new stellar and planetary model inputs. We additionally present a set of codes developed alongside the core \texttt{VSPEC} modules, including the stellar surface model generator \texttt{vspec-vsm}, the stellar spectral grid interpolation code GridPolator, and a Python interface for PSG, \texttt{libpypsg}.
 \end{abstract}
 
 \keywords{Exoplanet, M dwarf}
@@ -213,7 +213,7 @@ PSG\footnote{\url{https://psg.gsfc.nasa.gov/}} \citep{villanueva2018} is a power
 
 \begin{lstlisting}[
     language=Python,label={ls:libpypsg},
-    caption={\texttt{libpypsg} Example}
+    caption={\texttt{libpypsg} Example Input}
 ]
 import libpypsg
 from astropy import units as u
@@ -544,22 +544,19 @@ Finally, we populate our atmosphere with molecules. The user specifies the speci
 
 \subsection{Transit of a spotted star}
 
-In this section we will simulate the transit of a bare rock across a spotted star to demonstrate how an inhomogeneous
+In this section we will simulate the transit of a atmosphere-less occulting disk across a spotted star to demonstrate how an inhomogeneous
 stellar surface can lead to a false atmospheric signal -- a phenomenon known as the ``transit light source effect'' \citep{rackham2018}.
-During transit, the planetary atmosphere is illuminated by the portion of the star directly behind the planet. The depth of the transit
-should be measured with respect for the spectrum of this region of the stellar surface. However, the disk-integrated stellar spectrum is often used instead.
-In the case that the stellar surface is not homogeneous, the transit signal is contaminated by the star.
-We will reproduce results by \citet{moran2023}, who observed this effect with JWST/NIRSpec during a transit of super-Earth GJ 486b.
 
-Whenever possible, we draw parameter values from \citet{moran2023} and the NExScI Archive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/GJ1214b}}.
-We use the JWST NIRSpec/G395H instrument setup but set $R=200$ to account for the resolution of the reduction.
-Additionally we observe for 3.53 hours with an 8 minute cadence. Mid-transit is reached exactly halfway through the observation.
+During primary transit of a planet with an atmosphere, the atmosphere is illuminated by the portion of the star directly behind the planet. Ideally, the depth of the transit should be measured with respect to the spectrum of the region of the stellar surface covered by the planet. However, the disk-integrated stellar spectrum (as measured before an after the transit) is used as the baseline. In the case that the stellar surface is not homogeneous, the transit signal is modulated by the uncorrected stellar inhomogeneities. In this example, we will reproduce the TLS results by \citet{moran2023}, who contended with this degeneracy with JWST/NIRSpec observations during a transit of super-Earth GJ 486b.
 
-We will do two \vspec{} simulations:
+Whenever possible, we draw parameter values from \citet{moran2023} and the NExScI rchive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/GJ486b}}. We use the JWST NIRSpec/G395H instrument setup from PSG with an observing time of 3.53 hours with an 8 minute cadence to match \citet{moran2023}, but set $R=200$ to account for the resolution of their reduction.
+
+We performed two \vspec{} simulations based on the two scenarios described in \citet{moran2023}:
 \begin{enumerate}
     \item 1 bar \ce{H2O} isothermal atmosphere, no spots. \label{case:1barh2o}
     \item No atmosphere, 2.5\% coverage by 2700 K spots \label{case:no_atmo}
 \end{enumerate}
+
 In Case \ref{case:1barh2o} we expect to see an absorption spectrum characteristic of \ce{H2O}. Case \ref{case:no_atmo} is more complicated, though in the absence of spots we would expect a flat spectrum. Note also that we disabled \ce{H2O}-\ce{H2O} collision-induced absorption (CIA) for
 these simulations because the effect was not considered in the original analysis of GJ 486b.
 
@@ -567,85 +564,55 @@ these simulations because the effect was not considered in the original analysis
     \centering
     \includegraphics[width=0.5\textwidth]{figures/moran23.pdf}
     \caption{
-        The results from our spotted transit experiment. We find that the addition of
-        spots to a star's surface can give an otherwise flat transit spectrum features that appear to be molecular bands.
-        This is in agreement with the results of \citet{moran2023}.
+        The results from our spotted transit experiment. We find that the addition of spots to a star's surface can produce spectral features in what would otherwise be a flat transit spectrum due to a lack of atmosphere or other mitigating issues such as planetary aerosols.  These features mimic those that would be produced due to molecular absorption in a planetary atmosphere. This is in agreement with the results of \citet{moran2023}.
         }
     \script{moran23.py}
     \label{fig:moran_transit}
 \end{figure}
 
-We find that, as expected, the addition of spots changes the transit depth in a way that depends on wavelength -- mimicking
-light lost to absorbers in a planetary atmosphere. Figure \ref{fig:moran_transit} shows us that, in this case, we observe false absorption;
-this is due to a temporary increase in the spotted fraction of the surface relative to the quiet photosphere. However, if a spot was blocked by
-the planet we might see similar features inverted to mimic emission.
+We find that, as expected, the addition of spots changes the transit depth in a way that depends on wavelength -- mimicking light that would be lost to absorbers in a planetary atmosphere. Figure \ref{fig:moran_transit} shows us that, in this case, we observe false absorption signals; this is due to a temporary increase in the spotted fraction of the surface relative to the quiet photosphere. However, if a spot was blocked by the planet we might see similar features inverted to mimic emission.
 
 \subsection{Phase Curve}
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.5\textwidth]{figures/kempton23.pdf}
     \caption{
-        MIRI phase curves for GJ 1214b binned by wavelength. Compare to \citet{kempton2023} Extended Data Figure 1.
-        While the addition of stellar variability does have a visible effect on the light curve, it is much smaller than the thermal emission by the exoplanet.
+        A simulation of a MIRI phase curve for GJ 1214b, binned by wavelength; compare to real data published by \citet{kempton2023}(Extended Data Figure 1). While the addition of stellar variability does have a visible effect on the light curve, it is much smaller than the thermal emission produced by the exoplanet.
         }
     \script{kempton23.py}
     \label{fig:gj1214b}
 \end{figure}
 
-Analysis of JWST MIRI-LRS phase curves of GJ 1214b by \citet{kempton2023} did not consider stellar
-contamination because of the slow rotation rate of the host star \citep[approximately 1/80$^{\text{th}}$ the orbital frequency,][]{cloutier2021}.
-In this example we simulate this system using \vspec{} and find that this is a reasonable assumption.
+Analysis of JWST MIRI-LRS phase curves of GJ 1214b by \citet{kempton2023} did not consider stellar contamination because of the slow rotation rate of the host star \citep[approximately 1/80$^{\text{th}}$ the orbital frequency,][]{cloutier2021}. In this example, we simulate these observations using \vspec{} and determine whether this is a reasonable assumption.
 
-We initialize \vspec{} to run a 41.0 hour observation with a cadence of 15 minutes. We use stellar and planetary parameters
-from the NExScI Exoplanet Archive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/GJ1214b}}.
-The GCM used has a thermal inertia of $\epsilon = 6$ and a 1 bar \ce{CO2} atmosphere.
+We initialized \vspec{} to simulate an observation of the system using the same instrument setup and observation parameters as \citet{kempton2023}. We used stellar and planetary parameters from the NExScI Exoplanet Archive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/GJ1214b}}. The VSPEC GCM (see Section \ref{sec:vspec-gcm}) used has a thermal inertia of $\epsilon = 6$ and a 1 bar \ce{CO2} atmosphere, appropriate for a high-metallicity \ce{CO2}-rich atmosphere scenario.
 
-We initialized two stellar models: one with nothing more than a 3250 K surface, and another with 20\% coverage by 2700 K spots.
-
-After running the \vspec{} simulations, we bin into 0.5 $\mu m$ wavelength channels and normalize each channel to the two eclipses.
-We assume the star behaves linearly between eclipse measurements and attribute any deviation to the planet.
+We initialized two stellar models: one with nothing more than a 3250 K surface, and another with 20\% coverage by 2700 K spots. After running the \vspec{} simulations, we binned the simulated data into 0.5 $\mu m$ wavelength channels and normalized each channel to the two eclipses, similar to standard data analysis techniques; this assumes that the star behaves linearly between eclipse measurements and therefore attributes any deviation to the planet.
 
 We show in Figure \ref{fig:gj1214b} that the stellar properties assumed in this example do not generate enough contamination to
-significantly change the observed phase curve of GJ 1214b. At it's worst (i.e. near transit) the observed spectrum varies by 50 ppm due to stellar
-contamination -- compared to the 700 ppm relative flux of the planet at $8.5 {\mu m}$. Similar studies could be done to assess the potential for
-stellar contamination in other exoplanetary systems in order to judge fitness as a target.
+significantly change the observed phase curve of GJ 1214b. At worst (i.e. near transit), the observed spectrum varies by 50 ppm due to stellar
+contamination -- compared to the 700 ppm relative flux of the planet at $8.5 {\mu m}$. 
 
-% \subsection{MIRECLE Phase Curve}
-% In this example we will look at the best-case target for the Mid-IR Exoplanet CLimate Explorer \citep[MIRECLE,][]{mandell2022}
-% mission concept: Proxima Centauri b with no stellar variability. We will instead examine the expected noise produced by this observation
-% and assess the detectability of the planet in a single orbit. \vspec{} uses the noise models built into PSG, allowing native support for
-% noise due to the instrument, source, and astrophysical background.
-
-% We use \vspec{}'s built-in MIRECLE instrument template, which includes a 2 m aperture and observes from 1-18 $\mu m$ with $R=50$.
-% We draw stellar and bulk planetary parameters from the NExScI Exoplanet Archive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/proxima\%20cen}}
-% and assume $i=85^\circ$ and Earth density. The GCM we use has a Bond albedo of 0.3, $\epsilon=1.5$, $P_{\rm surf} = 1 \text{bar}$ and a 100 ppm \ce{CO2} atmosphere with a \ce{N2} background.
-% We ran the simulation for one orbit with an 24 hour cadence. Because this is a best-case scenario, we assumed perfect knowledge of the stellar spectrum.
-% We are left with the planetary spectrum and photon noise from the star.
-
-% \begin{figure}
-%     \centering
-%     \includegraphics[width=0.5\textwidth]{figures/mirecle.pdf}
-%     \caption{
-%         Simulated spectra of Proxima Centauri b observed by MIRECLE. Noise and error bars based on 24 hour integrations with a 2 m aperture MIRECLE
-%         space telescope.
-%         }
-%     \script{mirecle.py}
-%     \label{fig:mirecle}
-% \end{figure}
+Similar studies could be done to assess the potential for
+stellar contamination in other exoplanetary systems in order to judge fitness as a target; in particular, faster stellar rotation should produce much larger contamination signals that may approach or dwarf the planetary signal.
 
 \section{Conclusion}
 \label{sec:conclusion}
-We present a suite of codes to model observations of exoplanets with 3D atmospheres orbiting variable stars. The main package, \vspec{}, produces combined-light phase curves by interfacing with an ensemble of support packages whose responsibilities range from grid interpolation to interfacing with PSG. These codes are all open-source and available to the public on GitHub and the Python package index, PyPI.
+We present a suite of codes to model observations of exoplanets with 3D atmospheres orbiting variable stars. The main package, \vspec{}, produces combined-light phase curves by interfacing with an ensemble of support packages whose responsibilities range from grid interpolation to interfacing with PSG. These codes are all open-source and available to the public on GitHub and the Python Package Index (PyPI).
 
-While all of these codes are stable, development is ongoing. Future work on \vspec{} will concern improving performance so that it can be used to produce phase-curve grids for retrievals. In general, a phase curve retrieval will not require the stellar portion of VSPEC's output, and if there is no need for both thermal and reflected spectra, then only one PSG calculation is required per epoch. This could reduce \vspec{}'s computational cost by approximately a factor of 4 purely by skipping unnecessary steps.
+While all of these codes are stable, development is ongoing. Future work on \vspec{} will focus on improving performance so that it can be used to produce phase-curve grids for retrievals. In general, a phase curve retrieval will not require the stellar portion of VSPEC's output, and if there is no need for both thermal and reflected spectra, then only one PSG calculation is required per epoch. This could reduce \vspec{}'s computational cost by approximately a factor of 4 purely by skipping unnecessary steps.
 
-A goal of \texttt{vspec-vsm} development should be to create a common API between it and more physics-based stellar models, so that \vspec{} can interface with those models as well. GridPolator is currently in the process of adding support for more built-in stellar grids, these more complex and covering a larger range of spectral types that the current \vspec{} grid. However, as the size of these grids grows, it becomes less efficient to build the grid prior to each run. Future versions will support caching of grids locally using standard Python object serialization libraries such as \texttt{pickle}\footnote{\url{https://docs.python.org/3/library/pickle.html}}. This method would allow interpolator objects to be recalled nearly instantly (limited by hard drive read speeds) rather than the expensive process of re-computation.
+A future goal of \texttt{vspec-vsm} development should be to create a common API for externally-developed physics-based variable star surface models, so that \vspec{} can interface with those models as well. GridPolator is currently in the process of adding support for more built-in stellar grids, which are more complex and cover a larger range of spectral types than the current \vspec{} grid. However, as the size of these grids grows, it becomes less efficient to build the grid prior to each run. Future versions will support caching of grids locally using standard Python object serialization libraries such as \texttt{pickle}\footnote{\url{https://docs.python.org/3/library/pickle.html}}. This method would allow interpolator-oriented Python objects to be recalled nearly instantly (limited by hard drive read-write speeds) rather than the expensive process of re-initialization.
 
 \texttt{libpypsg} has the most to offer the exoplanet community as a stand-alone package, but currently lacks support for much of the data that PSG is capable of producing. Its development so far has focused around the \vspec{} use case, so future work will center around making it more useful to the majority of PSG users.
 
 
 \section{Acknowledgements}
 The authors would like to thank Peter Hauschildt for generating a custom grid of PHOENIX stellar models.
+
+T.J. acknowledges support from the Exoplanet Modeling and Analysis Center \citep[EMAC, ][]{renaud2023}.
+
+The authors would like to thank the Sellers Exoplanet Environments Collaboration (SEEC) and Exoplanet Spectroscopy Technologies (ExoSpec) ISFM teams at NASA's Goddard Space Flight Center for their consistent financial and collaborative support.
 
 This manuscript was typeset using the open-science software \showyourwork, which makes the entire manuscript, including each figure, completely reproducible by anyone with access to the git repository at \url{https://github.com/VSPEC-Collab/vspec-paper}.
 

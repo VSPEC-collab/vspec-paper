@@ -4,6 +4,7 @@
 \usepackage[version=4]{mhchem}
 \usepackage{listings}
 \usepackage{hyperref}
+\usepackage{natbib}
 
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
@@ -274,7 +275,7 @@ Length = 146 rows
 
 
 
-A powerful feature of \texttt{libpypsg} is that it provides a universal interface for 3D atmosphere models and PSG's Global Emission Spectra (GlobES) application \TJ{(Fauchez et al., 2024, in review; see also Kofman et al., 2024, accepted)}.
+A powerful feature of \texttt{libpypsg} is that it provides a universal interface for 3D atmosphere models and PSG's Global Emission Spectra (GlobES) application (\citealt{fauchez2024}, in prep; see also \citealt{kofman2024}, accepted)
 GlobES expects 3D data to be presented in a binary data format, and converting a model to this format is non-trivial. \texttt{libpypsg}'s \texttt{PyGCM} class provides a native Python representation of GlobES input, and includes built-in methods for converting popular climate models like ExoCAM \citep{wolf2022}, the Whole Atmosphere Community Climate Model \citep[WACCM,][]{marsh2013}, and ExoPlaSim \citep{paradise2022} to the correct format.
 
 Listing \ref{ls:libpypsg} shows a minimal example that uses \texttt{libpypsg} to make a call to PSG/GlobES, with the output shown in Listing \ref{ls:psgout}. Here \texttt{libpypsg} converts a GCM output from the netCDF format to a \texttt{PyGCM}, which, along with data model classes like \texttt{Target} and \texttt{Observatory}, is used as an argument to construct a \texttt{PyConfig} class instance. This configuration object is then passed to an \texttt{APICall} instance. When the API call is made, the contents of the \texttt{PyConfig} are included in the body of the POST request in the \texttt{file} field. PSG reads this the same as it would if we had written those contents to a file \texttt{config.txt} and passed the \texttt{--data-urlencode file@config.txt} option to \texttt{cURL}, as are the instructions in the PSG handbook \citep[pp. 162-163]{villanueva2022}. More details on use of this library including its API and examples can be found on the \texttt{libpypsg} documentation page\footnote{\urldocslibpypsg}.
@@ -610,7 +611,7 @@ A future goal of \texttt{vspec-vsm} development should be to create a common API
 \section{Acknowledgements}
 The authors would like to thank Peter Hauschildt for generating a custom grid of PHOENIX stellar models.
 
-T.J. acknowledges support from the Exoplanet Modeling and Analysis Center \citep[EMAC, ][]{renaud2023}.
+T.J. acknowledges support from the Exoplanet Modeling and Analysis Center \citep[EMAC, ][]{renaud2022}.
 
 The authors would like to thank the Sellers Exoplanet Environments Collaboration (SEEC) and Exoplanet Spectroscopy Technologies (ExoSpec) ISFM teams at NASA's Goddard Space Flight Center for their consistent financial and collaborative support.
 

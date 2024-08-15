@@ -432,7 +432,7 @@ inter-granule surface; the surface coverage of the cool region at any given time
 
 \subsection{Transits \& Limb Darkening}
 
-\begin{figure*}
+\begin{figure*}[h]
     \centering
     \includegraphics[width=\textwidth]{figures/ld_transit.pdf}
     \caption{
@@ -449,7 +449,7 @@ In the case of a transiting geometry, \texttt{vspec-vsm} is responsible for comp
 \section{Stellar Spectral Grids}
 \label{sec:gridpolator}
 
-\begin{figure}
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.5\textwidth]{figures/jax_v_scipy.pdf}
     \caption{
@@ -473,11 +473,6 @@ Within this suite of codes, GridPolator has the added responsibility of binning 
 
 However, as a full global circulation model can take days to months to converge, there are many cases where a ``quick and dirty'' 3D climate model may be sufficient. Built into \vspec{} is such a ``faux'' climate model -- one that does not contain any of the circulation physics of the above sophisticated codes, but instead constructs a 3D planetary atmosphere in a fraction of a second from just a few parameters. Such a model can also be advantageous because it is extremely predictable; a feature in the phase curve can easily be traced back to the model parameters that cause it.
 
-The \vspec{} GCM centers around a 2D temperature map of the planet's surface. Based on \citet{cowan2011}, this map
-is determined exclusively by the incident flux from the star (parameterized by the host \teff~and radius,
-and the planet's semimajor axis and Bond albedo) and the unitless thermal redistribution efficiency $\epsilon$.
-This efficiency is 0 for a planet that re-radiates instantly and $\gg 1$ for an atmosphere that efficiently redistributes heat to its night side. Figure \ref{fig:thermal_inertia} shows a temperature map example for an Earth-like planet with $\epsilon = 2\pi$. These temperature maps are validated by the energy balance of the planet; \vspec{} computes the incident and emergent flux across the planet and issues a warning if they are not in agreement.
-
 \begin{figure}
     \centering
     \includegraphics[width=0.5\textwidth]{figures/cowan_gcm.pdf}
@@ -488,7 +483,12 @@ This efficiency is 0 for a planet that re-radiates instantly and $\gg 1$ for an 
     \label{fig:thermal_inertia}
 \end{figure}
 
-To compute the surface temperature we first compute the temperature at the equator as a function of longitude. This is done by integrating Equation (10) of \citet{cowan2011}
+The \vspec{} GCM centers around a 2D temperature map of the planet's surface. Based on \citet{cowan2011}, this map
+is determined exclusively by the incident flux from the star (parameterized by the host \teff~and radius,
+and the planet's semimajor axis and Bond albedo) and the unitless thermal redistribution efficiency $\epsilon$.
+This efficiency is 0 for a planet that re-radiates instantly and $\gg 1$ for an atmosphere that efficiently redistributes heat to its night side. Figure \ref{fig:thermal_inertia} shows a temperature map example for an Earth-like planet with $\epsilon = 2\pi$. These temperature maps are validated by the energy balance of the planet; \vspec{} computes the incident and emergent flux across the planet and issues a warning if they are not in agreement.
+
+To compute the surface temperature we first compute the temperature at the equator as a function of longitude. This is done by integrating \citet{cowan2011} Equation (10).
 \begin{equation}
     \frac{d \tilde{T}}{d \Phi} = \frac{1}{\epsilon}(\max{(\cos{\Phi}, 0)} - \tilde{T}^4)
 \end{equation}
@@ -636,7 +636,7 @@ This manuscript was typeset using the open-science software \showyourwork, which
 This work made use of Astropy:\footnote{\url{http://www.astropy.org}} a community-developed core Python package and an ecosystem of tools and resources for astronomy \citep{astropycollaboration2013,astropycollaboration2018,astropycollaboration2022}.
 
 
-The figures in this article were created using the Matplotlib \citep{hunter2007}, NumPy \citep{harris2020}, and Cartopy \citep{metoffice2010} libraries.
+The figures in this article were created using the Matplotlib \citep{hunter2007}, NumPy \citep{harris2020}, and Cartopy \citep{metoffice2010} libraries. The top panel of Figure \ref{fig:fac_struct} was created using the open-source vector graphics software Inkscape\footnote{\url{https://inkscape.org/}}.
 
 \section{Author Contributions} % see https://www.elsevier.com/researcher/author/policies-and-guidelines/credit-author-statement
 {\bf Ted M Johnson:} Conceptualization, Methodology, Software, Writing - Original Draft

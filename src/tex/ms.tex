@@ -1,5 +1,5 @@
 % Define document class
-\documentclass[twocolumn,linenumbers]{aastex631}
+\documentclass[linenumbers,preprint,authoryear]{elsarticle}
 \usepackage{showyourwork}
 \usepackage[version=4]{mhchem}
 \usepackage{listings}
@@ -42,75 +42,91 @@
 \newcommand{\urldocslibpypsg}{\url{https://tedjohnson12.github.io/libpypsg/}}
 \newcommand{\urldocsgridpolator}{\url{https://vspec-collab.github.io/GridPolator/}}
 
-\shorttitle{\vspec{}}
-\shortauthors{Johnson et al.}
+% \shorttitle{\vspec{}}
+% \shortauthors{Johnson et al.}
 
 % Begin!
 \begin{document}
 
 % Title
-% \title{The \vspec{} code: Spectroscopic phase curves of 3D exoplanet models in the presence of stellar variability}
 \title{The \vspec{} Collection: A suite of utilities to model spectroscopic phase curves of 3D exoplanet atmospheres in the presence of stellar variability.}
 
-\correspondingauthor{Ted M Johnson}
-\email{ted.johnson@unlv.edu}
+\author[1,2,3,4,5]{Ted M Johnson\corref{cor1}}
+\ead{ted.johnson@unlv.edu}
 
-% \author{Ted M Johnson}
-\author[0000-0002-1570-2203]{Ted M Johnson}
-\affiliation{Southeastern Universities Research Association, 1201 New York Avenue NW, Suite 430, Washington, DC 20055, USA}
-\affiliation{Center for Research and Exploration in Space Science and Technology, NASA Goddard Space Flight Center, 8800 Greenbelt Road, Greenbelt, MD 20771, USA}
-\affiliation{NASA Goddard Space Flight Center \\
-8800 Greenbelt Rd \\
-Greenbelt, MD 20771, USA}
-\affiliation{Nevada Center for Astrophysics, University of Nevada, Las Vegas, 4505 South Maryland Parkway, Las Vegas, NV 89154, USA}
-\affiliation{Department of Physics and Astronomy, University of Nevada, Las Vegas, 4505 South Maryland Parkway, Las Vegas, NV 89154, USA}
+\author[1,2,3]{Cameron Kelahan}
 
+\author[3]{Avi M. Mandell}
 
-\author{Cameron Kelahan}
-\affiliation{Southeastern Universities Research Association, 1201 New York Avenue NW, Suite 430, Washington, DC 20055, USA}
-\affiliation{Center for Research and Exploration in Space Science and Technology, NASA Goddard Space Flight Center, 8800 Greenbelt Road, Greenbelt, MD 20771, USA}
-\affiliation{NASA Goddard Space Flight Center \\
-8800 Greenbelt Rd \\
-Greenbelt, MD 20771, USA}
+\author[3]{Ashraf Dhahbi}
 
-\author{Avi M. Mandell}
-\affiliation{NASA Goddard Space Flight Center \\
-8800 Greenbelt Rd \\
-Greenbelt, MD 20771, USA}
+\author[3]{Tobi Hammond}
 
-\author{Ashraf Dhahbi}
-\affiliation{NASA Goddard Space Flight Center \\
-8800 Greenbelt Rd \\
-Greenbelt, MD 20771, USA}
+\author[3]{Thomas Barclay}
 
-\author{Tobi Hammond}
-\affiliation{NASA Goddard Space Flight Center \\
-8800 Greenbelt Rd \\
-Greenbelt, MD 20771, USA}
+\author[3]{Veselin B. Kostov}
+\author[3]{Geronimo L. Villanueva}
 
-\author{Thomas Barclay}
-\affiliation{NASA Goddard Space Flight Center \\
-8800 Greenbelt Rd \\
-Greenbelt, MD 20771, USA}
+\cortext[cor1]{Corresponding Author}
 
-\author{Veselin B. Kostov}
-\affiliation{NASA Goddard Space Flight Center \\
-8800 Greenbelt Rd \\
-Greenbelt, MD 20771, USA}
+\affiliation[1]{
+    organization={Southeastern Universities Research Association},
+    addressline={1201 New York Avenue NW, Suite 430},
+    city={Washington, DC},
+    postcode={20055},
+    country={USA}
+}
+\affiliation[2]{
+    organization={Center for Research and Exploration in Space Science and Technology, NASA Goddard Space Flight Center},
+    addressline={8800 Greenbelt Road},
+    city={Greenbelt, MD},
+    postcode={20771},
+    country={USA}
+}
+\affiliation[3]{
+    organization={NASA Goddard Space Flight Center},
+    addressline={8800 Greenbelt Road},
+    city={Greenbelt, MD},
+    postcode={20771},
+    country={USA}
+}
+\affiliation[4]{
+    organization={Nevada Center for Astrophysics, University of Nevada, Las Vegas},
+    addressline={4505 South Maryland Parkway},
+    city={Las Vegas, NV},
+    postcode={89154},
+    country={USA}
+}
+\affiliation[5]{
+    organization={Department of Physics and Astronomy, University of Nevada, Las Vegas},
+    addressline={4505 South Maryland Parkway},
+    city={Las Vegas, NV},
+    postcode={89154},
+    country={USA}
+} 
+\affiliation[6]{
+    organization={University of Maryland, Baltimore County},
+    addressline={1000 Hilltop Cir},
+    city={Baltimore, MD},
+    postcode={21250},
+    country={USA}
+}
 
-\author{Geronimo L. Villanueva}
-\affiliation{NASA Goddard Space Flight Center \\
-8800 Greenbelt Rd \\
-Greenbelt, MD 20771, USA}
-
-% Abstract with filler text
 \begin{abstract}
     We present the Variable Star PhasE Curve (\texttt{VSPEC}) Collection, a set of Python packages for simulating combined-light spectroscopic observations of 3-dimensional exoplanet atmospheres in the presence of stellar variability and inhomogeneity. \texttt{VSPEC} uses the Planetary Spectrum Generator's Global Emission Spectra (PSG/GlobES) application along with a custom-built multi-component time-variable stellar model based on a user-defined grid of stellar photosphere models to produce spectroscopic light curves of the planet-host system. \texttt{VSPEC} can be a useful tool for modeling observations of exoplanets in transiting geometries (primary transit, secondary eclipse) as well as orbital phase curve measurements, and is built in a modular and flexible configuration for easy adaptability to new stellar and planetary model inputs. We additionally present a set of codes developed alongside the core \texttt{VSPEC} modules, including the stellar surface model generator \texttt{vspec-vsm}, the stellar spectral grid interpolation code GridPolator, and a Python interface for PSG, \texttt{libpypsg}.
 \end{abstract}
 
-\keywords{Exoplanet, M dwarf}
+\begin{keyword}
+    Exoplanet Atmospheres, Stellar Variability, Spectroscopic Phase Curve, Open Source, Planetary Spectrum Generator
+\end{keyword}
 
-% Main body with filler text
+% Highlights:
+% Instruments that characterize exoplanet atmospheres are sensitive to the effects of stellar inhomogeneities.
+% We present VSPEC, a code to simulate observations of 3D planets in the presence of stellar variability and inhomogeneity.
+% VSPEC, and the codes that support it, are open source, well documented, and available to the public.
+
+\maketitle
+
 \section{Introduction}
 \label{sec:intro}
 
@@ -362,8 +378,8 @@ Facula lifetimes are defined as the time it takes its radius to decay by $e^{-2}
 
 \begin{figure}
     \centering
-    \gridline{\includegraphics[width=0.5\textwidth]{figures/facula_diagram.pdf}}
-    \gridline{\includegraphics[width=0.5\textwidth]{figures/facula_depth.pdf}}
+    \includegraphics[width=0.5\textwidth]{figures/facula_diagram.pdf}
+    \includegraphics[width=0.5\textwidth]{figures/facula_depth.pdf}
     \script{facula_depth.py}
     \caption{
         ``Hot Wall'' model of faculae. Faculae structure causes their contrast to be dependent on their distance from the center of the disk. {\bf Top}: Depiction of a facula on the limb of a star. The hot wall is exposed to the observer causing the pore to appear bright. At disk center, the cool floor is most visible. {\bf Bottom}: The effects of depression depth and viewing angle on facula brightness. The 3D structure of faculae is most apparent when radius $\sim$ depth. A toy flux model was used to demonstrate the shape of these curves, but in practice their magnitudes depend on stellar spectral models.
@@ -622,6 +638,7 @@ This work made use of Astropy:\footnote{\url{http://www.astropy.org}} a communit
 
 The figures in this article were created using the Matplotlib \citep{hunter2007}, NumPy \citep{harris2020}, and Cartopy \citep{metoffice2010} libraries.
 
+\bibliographystyle{elsarticle-harv}
 \bibliography{syw,VSPEC}
 
 \end{document}

@@ -1,5 +1,5 @@
 % Define document class
-\documentclass[linenumbers,preprint,authoryear]{elsarticle}
+\documentclass[linenumbers,5p,twocolumn,authoryear]{elsarticle}
 \usepackage{showyourwork}
 \usepackage[version=4]{mhchem}
 \usepackage{listings}
@@ -561,6 +561,16 @@ Finally, we populate our atmosphere with molecules. The user specifies the speci
 
 \subsection{Transit of a spotted star}
 
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\textwidth]{figures/moran23.pdf}
+    \caption{
+        The results from our spotted transit experiment. We find that the addition of spots to a star's surface can produce spectral features in what would otherwise be a flat transit spectrum due to a lack of atmosphere or other mitigating issues such as planetary aerosols.  These features mimic those that would be produced due to molecular absorption in a planetary atmosphere. This is in agreement with the results of \citet{moran2023}.
+        }
+    \script{moran23.py}
+    \label{fig:moran_transit}
+\end{figure}
+
 In this section we will simulate the transit of a atmosphere-less occulting disk across a spotted star to demonstrate how an inhomogeneous
 stellar surface can lead to a false atmospheric signal -- a phenomenon known as the ``transit light source effect'' \citep{rackham2018}.
 
@@ -577,20 +587,10 @@ We performed two \vspec{} simulations based on the two scenarios described in \c
 In Case \ref{case:1barh2o} we expect to see an absorption spectrum characteristic of \ce{H2O}. Case \ref{case:no_atmo} is more complicated, though in the absence of spots we would expect a flat spectrum. Note also that we disabled \ce{H2O}-\ce{H2O} collision-induced absorption (CIA) for
 these simulations because the effect was not considered in the original analysis of GJ 486b.
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\textwidth]{figures/moran23.pdf}
-    \caption{
-        The results from our spotted transit experiment. We find that the addition of spots to a star's surface can produce spectral features in what would otherwise be a flat transit spectrum due to a lack of atmosphere or other mitigating issues such as planetary aerosols.  These features mimic those that would be produced due to molecular absorption in a planetary atmosphere. This is in agreement with the results of \citet{moran2023}.
-        }
-    \script{moran23.py}
-    \label{fig:moran_transit}
-\end{figure}
-
 We find that, as expected, the addition of spots changes the transit depth in a way that depends on wavelength -- mimicking light that would be lost to absorbers in a planetary atmosphere. Figure \ref{fig:moran_transit} shows us that, in this case, we observe false absorption signals; this is due to a temporary increase in the spotted fraction of the surface relative to the quiet photosphere. However, if a spot was blocked by the planet we might see similar features inverted to mimic emission.
 
 \subsection{Phase Curve}
-\begin{figure}[t]
+\begin{figure}[h]
     \centering
     \includegraphics[width=0.5\textwidth]{figures/kempton23.pdf}
     \caption{

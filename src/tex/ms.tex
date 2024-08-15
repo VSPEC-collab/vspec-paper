@@ -326,7 +326,7 @@ Our star spot model is nearly entirely based on observations of the Sun. Sunspot
 \begin{equation}
     A(t) = \left\{
     \begin{array}{lr}
-        A_0 e^{(t-t_0)/\tau}, & \text{if } t \leq t_0 \\
+        A_0 \exp{((t-t_0)/\tau)}, & \text{if } t \leq t_0 \\
         A_0 - W(t-t_0), & \text{if } t > t_0
     \end{array}
     \right\}

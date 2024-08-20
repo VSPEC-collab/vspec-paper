@@ -31,15 +31,25 @@ datasets:
 
 # Custom file dependencies
 dependencies:
-  src/scripts/surface_map_and_lc.py:
-    - src/scripts/spot_lightcurve.yaml
-  src/scripts/flare_freq.yaml:
+  src/scripts/flare_freq.py:
     - src/scripts/flare_lc.yaml
-  src/scripts/moran.py:
-    - src/static/moran2023_fig3.txt
+    - src/scripts/setup_psg.py
+  src/scripts/granule_lc.py:
+    - src/scripts/setup_psg.py
+  src/scripts/kempton23.py:
+    - src/scripts/setup_psg.py
   src/scripts/ld_transit.py:
     - src/scripts/ld_lc_lamb.yaml
     - src/scripts/ld_lc_solar.yaml
+  src/scripts/mirecle.py:
+    - src/scripts/setup_psg.py
+  src/scripts/moran23.py:
+    - src/static/moran2023_fig3.txt
+    - src/scripts/setup_psg.py
+  src/scripts/surface_map_and_lc.py:
+    - src/scripts/spot_lightcurve.yaml
+    - src/scripts/setup_psg.py
+
 
 # Name of the `.tex` manuscript and corresponding `.pdf` article
 ms_name: ms

@@ -44,7 +44,7 @@ ax1: plt.Axes = fig.add_subplot(gs[4:13,1])
 
 wl_index = np.argmin(np.abs(lam_data.wavelength - 1*u.um))
 
-ax1.plot(lam_data.time.to_value(u.hr), lam_data.lightcurve('total',wl_index,normalize=0), 'r', label='Lambertian')
+ax1.plot(lam_data.time.to_value(u.hr), lam_data.lightcurve('total',wl_index,normalize=0), 'r', label='Lambertian rad.')
 obs = lam_data.lightcurve('total',wl_index)
 obs = obs/obs[0] + np.random.normal(scale=lam_data.lightcurve('noise',wl_index)/obs[0])
 ax1.scatter(lam_data.time.to_value(u.hr), obs, c='r',marker='.',s=1,alpha=1)

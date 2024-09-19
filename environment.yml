@@ -10,3 +10,6 @@ dependencies:
       - git+https://github.com/tedjohnson12/libpypsg.git@main
       - cartopy==0.22.0
       - pandas==2.2.0
+    
+run:
+  - python3 src/scripts/setup_psg.py

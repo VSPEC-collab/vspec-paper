@@ -584,7 +584,7 @@ stellar surface can lead to a false atmospheric signal -- a phenomenon known as 
 
 During primary transit of a planet with an atmosphere, the atmosphere is illuminated by the portion of the star directly behind the planet. Ideally, the depth of the transit should be measured with respect to the spectrum of the region of the stellar surface covered by the planet. However, the disk-integrated stellar spectrum (as measured before an after the transit) is used as the baseline. In the case that the stellar surface is not homogeneous, the transit signal is modulated by the uncorrected stellar inhomogeneities. In this example, we will reproduce the TLS results by \citet{moran2023}, who contended with this degeneracy with JWST/NIRSpec observations during a transit of super-Earth GJ 486b.
 
-Whenever possible, we draw parameter values from \citet{moran2023} and the NExScI rchive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/GJ486b}}. We use the JWST NIRSpec/G395H instrument setup from PSG with an observing time of 3.53 hours with an 8 minute cadence to match \citet{moran2023}, but set $R=200$ to account for the resolution of their reduction.
+Whenever possible, we draw parameter values from \citet{moran2023} and the NExScI rchive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/GJ486b}}. We use the JWST NIRSpec/G395H instrument setup from PSG with an observing time of 3.53 hours with an 8 minute cadence to match \citet{moran2023}, but set $R=200$ to account for the resolution of their reduction. For simplicity, we do not include limb darkening or stellar rotation.
 
 We performed two \vspec{} simulations based on the two scenarios described in \citet{moran2023}:
 \begin{enumerate}
@@ -593,7 +593,7 @@ We performed two \vspec{} simulations based on the two scenarios described in \c
 \end{enumerate}
 
 In Case \ref{case:1barh2o} we expect to see an absorption spectrum characteristic of \ce{H2O}. Case \ref{case:no_atmo} is more complicated, though in the absence of spots we would expect a flat spectrum. Note also that we disabled \ce{H2O}-\ce{H2O} collision-induced absorption (CIA) for
-these simulations because the effect was not considered in the original analysis of GJ 486b.
+these simulations because the effect was not considered in the original analysis of GJ 486b. This is a simplified and highly controlled experiment, so there is no need to use standard transit light curve fitting techniques. We are able to compute the transit depth as $(f_\text{pre}-f_\text{tr})/f_\text{pre}$, where $f_\text{pre}$ is the total spectrum before the transit, at an epoch chosen by visual inspection, and $f_\text{tr}$ is the total spectrum during the transit, again chosen by visual inspection. A light curve fitting code would be needed if we had introduced stellar rotation or limb darkening.
 
 We find that, as expected, the addition of spots changes the transit depth in a way that depends on wavelength -- mimicking light that would be lost to absorbers in a planetary atmosphere. Figure \ref{fig:moran_transit} shows us that, in this case, we observe false absorption signals; this is due to a temporary increase in the spotted fraction of the surface relative to the quiet photosphere. However, if a spot was blocked by the planet we might see similar features inverted to mimic emission.
 

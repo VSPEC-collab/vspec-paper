@@ -143,8 +143,22 @@ In this paper we will describe the science motivation behind all of these codes,
 \section{Using \vspec{}}
 \label{sec:vspec}
 
-The flow of \vspec{}'s code is broken into three parts: i) read in the configuration, ii) compute planetary spectra, and iii) compute stellar spectra.
-See the \vspec{} documentation page\footnote{\href{https://vspec-collab.github.io/VSPEC/0.6.0/index.html}{https://vspec-collab.github.io/VSPEC/0.6.0/index.html}} for detailed API documentation.
+\begin{figure*}
+    \includegraphics[width=\textwidth]{figures/vspec-diagram.pdf}
+    \caption{
+        Flowchart diagram outlining the typical workflow of a \vspec{} simulation.
+        {\bf Upper right}: Processes representing the main \vspec{} stages alongside Python code snippets. Nearly all \vspec{} use cases involve the code \texttt{model.build\_planet(); model.build\_spectra()}, though the input file and the particulars of the analysis can be very different.
+        {\bf Upper left}: \texttt{build\_planet()} algorithm. This portion of the code is responsible for interfacing with PSG (via \texttt{libpypsg}, see Section \ref{sec:libpypsg}) to generate a phase curve. The decision labeled ``Update GCM?'' evaluates to true when a time-dependent climate model is specified in the input file, or when the PSG configuration returned by the latest API call is longer than 1500 lines, indicating that PSG should be reset. For convenience, the PSG GlobES application appends new configuration files to those from previous API calls, but stops reading after 2000 lines for security reasons. Therefore, the internal configuration file must be reset on occasion.
+        {\bf Lower left}: \texttt{build\_spectra()} algorithm. This portion of the code is responsible for adding stellar variability into our results. We use the outputs from the \texttt{build\_planet()} step to create interpolator instances (implemented as \texttt{GridPolator.Gridspectra} objects, see Section \ref{sec:gridpolator}) for the time- and wavelength-dependent values of relevant quantities (e.g., thermal emission flux, transit depth, various types of noise). We then step through each epoch in our time series and evaluate the variable star model (using \texttt{vspec-vsm}, see Section \ref{sec:star}). We replace the stellar spectrum from PSG with that of our model, scaling the noise appropriately. Finally, we evolve the star to the time of the next observation.
+        {\bf Lower right}: Diagram key. Note that, in general, all the steps marked as \texttt{GridPolator} processes also involve \texttt{vspec-vsm}.
+    }
+    \label{fig:vspec-diagram}
+    \script{copy_static_figs.py}
+\end{figure*}
+
+The typical flow of \vspec{}'s code is shown in Figure \ref{fig:vspec-diagram}, as well as described in the following sections.
+It is generally broken into four parts: i) read in the configuration, ii) compute planetary spectra, iii) compute stellar spectra, iv) analyze, with steps (i) and (iv) varying widely by use case.
+See the \vspec{} documentation page\footnote{\urldocsvspec} for detailed API documentation.
 \subsection{Configuring \vspec{}}
 \label{subsec:config}
 

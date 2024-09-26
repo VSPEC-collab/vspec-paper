@@ -356,11 +356,11 @@ where $A_0$ is the maximum area reached, $t_0$ is the time of the maximum, $\tau
 In addition to modeling the variability produced by a population of spots, \texttt{vspec-vsm} contains utilities to produce those populations given some description.
 These parameters include the average spot area \citep[lognormally distributed, ][]{bogdan1988}, \teff, growth and decay rates, and the method for distributing spots on the surface. These \texttt{SpotGenerator} objects are responsible for evolving the spot population as the star ages. The number of spots created in some interval $\Delta t$ is:
 \begin{equation}
-    N(\Delta t) = \frac{4 \pi R_*^2 f_{\rm spot}}{A_{\rm mean}} \frac{\Delta t}{T}
+    N(\Delta t) = \frac{4 \pi R_*^2 f_{\rm spot}}{A_{\rm mean}} \frac{\Delta t}{\tau_\text{spot}}
 \end{equation}
-where $R_*$ is the stellar radius, $f_{\rm spot}$ is the fraction of the surface covered by spots in growth-decay equilibrium, $A_{\rm mean}$ is the lifetime-averaged mean spot area, and $T$ is the spot lifetime, defined as:
+where $R_*$ is the stellar radius, $f_{\rm spot}$ is the fraction of the surface covered by spots in growth-decay equilibrium, $A_{\rm mean}$ is the lifetime-averaged mean spot area, and $\tau_\text{spot}$ is the spot lifetime, defined as:
 \begin{equation}
-    T = \frac{A_0}{W} - \frac{1}{\tau} \ln{\left (\frac{A_{\rm min}}{A_0}\right )}
+    \tau_\text{spot} = \frac{A_0}{W} - \frac{1}{\tau} \ln{\left (\frac{A_{\rm min}}{A_0}\right )}
 \end{equation}
 where $A_{\rm min}$ is the area given to each spot when it is initialized. There are also two modes to distribute spots on the star's surface. The first distributes them isotropically; the second, modeled after analysis of spots on the Sun by \citet{mandal2017}, concentrates the spot latitude around $\pm 15^{\circ}$.
 

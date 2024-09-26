@@ -60,11 +60,11 @@
 
 \author[3]{Avi M. Mandell\,\orcidlink{0000-0002-8119-3355}}
 
-\author[3]{Ashraf Dhahbi\,\orcidlink{0009-0009-0200-6821}}
+\author[1,2,3]{Ashraf Dhahbi\,\orcidlink{0009-0009-0200-6821}}
 
-\author[3]{Tobi Hammond\,\orcidlink{0009-0002-5756-9778}}
+\author[1,2,3]{Tobi Hammond\,\orcidlink{0009-0002-5756-9778}}
 
-\author[3]{Thomas Barclay\,\orcidlink{0000-0001-7139-2724}}
+\author[3,6]{Thomas Barclay\,\orcidlink{0000-0001-7139-2724}}
 
 \author[3]{Veselin B. Kostov\,\orcidlink{0000-0001-9786-1031}}
 \author[3]{Geronimo L. Villanueva\,\orcidlink{0000-0002-2662-5776}}
@@ -143,8 +143,27 @@ In this paper we will describe the science motivation behind all of these codes,
 \section{Using \vspec{}}
 \label{sec:vspec}
 
-The flow of \vspec{}'s code is broken into three parts: i) read in the configuration, ii) compute planetary spectra, and iii) compute stellar spectra.
-See the \vspec{} documentation page\footnote{\href{https://vspec-collab.github.io/VSPEC/0.6.0/index.html}{https://vspec-collab.github.io/VSPEC/0.6.0/index.html}} for detailed API documentation.
+\begin{figure*}
+    \includegraphics[width=\textwidth]{figures/vspec-diagram.pdf}
+    \caption{
+        Flowchart diagram outlining the typical workflow of a \vspec{} simulation.
+        {\bf Upper right}: Processes representing the main \vspec{} stages alongside Python code snippets. Nearly all \vspec{} use cases involve the code \texttt{model.build\_planet(); model.build\_spectra()}, though the input file and the particulars of the analysis can be very different.
+        {\bf Upper left}: \texttt{build\_planet()} algorithm. This portion of the code is responsible for interfacing with PSG (via \texttt{libpypsg}, see Section \ref{sec:libpypsg}) to generate a phase curve. The decision labeled ``Update GCM?'' evaluates to true when a time-dependent climate model is specified in the input file, or when the PSG configuration returned by the latest API call is longer than 1500 lines, indicating that PSG should be reset. For convenience, the PSG GlobES application appends new configuration files to those from previous API calls, but stops reading after 2000 lines for security reasons. Therefore, the internal configuration file must be reset on occasion.
+        {\bf Lower left}: \texttt{build\_spectra()} algorithm. This portion of the code is responsible for adding stellar variability into our results. We use the outputs from the \texttt{build\_planet()} step to create interpolator instances (implemented as \texttt{GridPolator.Gridspectra} objects, see Section \ref{sec:gridpolator}) for the time- and wavelength-dependent values of relevant quantities (e.g., thermal emission flux, transit depth, various types of noise). We then step through each epoch in our time series and evaluate the variable star model (using \texttt{vspec-vsm}, see Section \ref{sec:star}). We replace the stellar spectrum from PSG with that of our model, scaling the noise appropriately. Finally, we evolve the star to the time of the next observation.
+        {\bf Lower right}: Diagram key. Note that, in general, all the steps marked as \texttt{GridPolator} processes also involve \texttt{vspec-vsm}.
+    }
+    \label{fig:vspec-diagram}
+    \script{copy_static_figs.py}
+\end{figure*}
+
+The typical flow of \vspec{}'s code is shown in Figure \ref{fig:vspec-diagram}, as well as described in the following sections.
+It is generally broken into four parts: i) read in the configuration, ii) compute planetary spectra, iii) compute stellar spectra, iv) analyze, with steps (i) and (iv) varying widely by use case.
+
+Most users of \vspec{} will interact exclusively with two classes: \texttt{VSPEC.ObservationModel} and \texttt{VSPEC.PhaseAnalyzer}. The bulk of the work is done by the \texttt{ObservationModel} class, as it reads in a user's inputs, runs the model, and writes output files. \vspec{} produces many output files, which themselves can be read easily using tools such as Astropy \citep{astropycollaboration2013,astropycollaboration2018,astropycollaboration2022}. However, the \texttt{PhaseAnalyzer} class makes it easy to read them as an ensemble, as well as quickly pull out portions of the data that are of interest.
+
+Section \ref{subsec:config} describes initializing the \texttt{ObservationModel}. Section \ref{subsec:phase-curve} describes computing the planetary phase curve using the \texttt{ObservationModel.build\_planet()} method. The next step, calling \texttt{ObservationModel.build\_spectra()}, recalls the data produced by PSG previously, but combines it with a spectral model of a variable star, scaling reflected light and noise appropriately. This step, along with detailed descriptions of various substeps, is described in Sections \ref{subsec:stellar-lc}, \ref{subsec:reflected}, \ref{subsec:noise}, and \ref{subsec:transit}.
+
+Use of the \texttt{PhaseAnalyzer} object is not described in detail as it mostly acts as a container, but Section \ref{sec:examples} includes many examples of its use. Additionally, the \vspec{} documentation page\footnote{\urldocsvspec} contains detailed API documentation.
 \subsection{Configuring \vspec{}}
 \label{subsec:config}
 
@@ -179,30 +198,28 @@ params = InternalParameters(
 This is convenient for producing configurations programmatically, for example for producing a grid of model phase curves.
 
 However the user decides to provide model parameters, they are read into the main \vspec{} object: the \texttt{ObservationModel}.
-This is the class that runs the model and handles files. Upon initialization a local working directory
-(by convention \texttt{.vspec}) is created to store simulation outputs and intermediate files.
+Upon initialization a local working directory (by convention \texttt{.vspec/}) is created to store simulation outputs and intermediate files.
 
 \subsection{Planetary Phase Curve}
 \label{subsec:phase-curve}
-\vspec{} generates a phase curve though a series of API calls to the Planetary Spectrum Generator \citep[PSG][]{villanueva2018}, using
-\texttt{libpypsg} (see Section \ref{sec:libpypsg}) to interface with the API. Initially, configurations are sent that give PSG information about
-the system that does not change with time -- that includes the 3D Global Circulation Model (GCM) and instrument parameters. \vspec{} then enters
-the main loop, iterating through each observation epoch (e.g.integration or combination of integrations) and making a pair of API calls: one to get a combined light spectrum and one to get the thermal flux only.
-Results from PSG in each epoch are stored locally in the \texttt{.fits} format. 
+\vspec{} generates a phase curve when the \texttt{ObservationModel.build\_planet()} method is called. It does this though a series of API calls to the Planetary Spectrum Generator \citep[PSG][]{villanueva2018}, using \texttt{libpypsg} (see Section \ref{sec:libpypsg}) to interface with the API. Initially, configurations are sent that give PSG information about the system that does not change with time -- that includes the 3D Global Circulation Model (GCM) and instrument parameters. \vspec{} then enters the main loop, iterating through each observation epoch (e.g.integration or combination of integrations) and making a pair of API calls: one to get a combined light spectrum and one to get the thermal flux only. Results from PSG in each epoch are stored locally in the \texttt{.fits} format. 
 
 \subsubsection{Phase Sampling}
 Making API calls to PSG can be computationally expensive, especially when trying to resolve small structures in the climate model. In order to reduce unnecessary calls to PSG, the temporal sampling of the planetary spectrum is independent of the stellar model/output sampling. When computing the planetary flux in the output files, the raw PSG output is interpolated and averaged over each time step using the trapezoid integration rule. By default one spectrum is computed with PSG at each interface separating time steps; this eases the calculation of edge effects between steps.
 
 \subsection{Stellar light curve}
+\label{subsec:stellar-lc}
 
-The last step is to replace the stellar spectra used by PSG with \vspec{}'s stellar model. In this step \vspec{} acts as a bridge between
+The last step is to replace the stellar spectra used by PSG with \vspec{}'s stellar model by calling the \texttt{ObservationModel.build\_spectra()} method. In this step \vspec{} acts as a bridge between
 the stellar surface model \texttt{vspec-vsm} (which models spatial changes to the star with time, see Section \ref{sec:star}) and a grid of
 pre-computed stellar spectra (from the GridPolator package; see Section \ref{sec:gridpolator}). The star is initialized and allowed to evolve for a user-specified amount of time in order for spots and faculae to approach growth-decay equilibrium (this is also called the ``burn in'' phase). The star is then evolved at the output cadence, generating a set of key-value pairs at each epoch that describe the surface temperature and coverage fractions of the portion of the stellar disk visible to the observer. These \teff s and coverage fractions are fed into GridPolator to produce composite stellar spectra.
 
 \subsection{Reflected light}
+\label{subsec:reflected}
 \vspec{} then produces a composite spectrum of the portion of the star visible to the planet to accurately incorporate the time-dependent stellar flux into the reflected-light spectrum. To compute the total reflected light in the output files, \vspec{} first divides the reflected light flux from PSG by the PSG stellar model to obtain the apparent albedo (I/F). This albedo is then multiplied by the composite stellar spectrum (facing the planet) to obtain the total reflected flux.
 
 \subsection{Simulated Noise}
+\label{subsec:noise}
 Alongside the planetary radiance files, PSG returns a file giving the analytic noise estimate for each epoch broken down by source. We assume that the total noise is the quadrature sum of its constituent parts and that the \texttt{source} column (i.e. photon noise) is the only one affected by replacing one stellar spectrum with the other. This means the photon noise can be calculated:
 \begin{equation}
     N_{\rm photon} = N_{\rm photon,~PSG} \sqrt{\frac{F_{*,\rm ~VSPEC}}{F_{*,\rm ~PSG}}}
@@ -215,6 +232,7 @@ where $F_*$ is the stellar flux. The total noise associated with the integration
 \end{equation}
 
 \subsection{Transit and Eclipse}
+\label{subsec:transit}
 Users must be careful when using \vspec{} to simulate transit and eclipse measurements because of the vast timescale differences between those events and the typical phase variations of a planet -- a sparsely sampled phase curve that happens to include one epoch of transit will not adequately sample the light curve accurately during a transit or eclipse because the interpolator knows no better than to assume a linear interpolation scheme. It is recommended that users use a high cadence for observations of transits and eclipses so that each event will be sampled by more than one point.
 
 In the case of a transiting geometry, \vspec{} computes the spectrum of the occulted portion of the star in order to properly simulate the transit light source effect \citep[TLS][]{rackham2018}. This spectrum is the flux blocked by the planet in the case that it is a solid occulting circle, and therefore produces a flat transmission spectrum. The effect of atmospheric transmission is added by comparing the PSG-computed effective radius to a purely geometric calculation of such a ``bare-rock" transit depth:
@@ -338,11 +356,11 @@ where $A_0$ is the maximum area reached, $t_0$ is the time of the maximum, $\tau
 In addition to modeling the variability produced by a population of spots, \texttt{vspec-vsm} contains utilities to produce those populations given some description.
 These parameters include the average spot area \citep[lognormally distributed, ][]{bogdan1988}, \teff, growth and decay rates, and the method for distributing spots on the surface. These \texttt{SpotGenerator} objects are responsible for evolving the spot population as the star ages. The number of spots created in some interval $\Delta t$ is:
 \begin{equation}
-    N(\Delta t) = \frac{4 \pi R_*^2 f_{\rm spot}}{A_{\rm mean}} \frac{\Delta t}{T}
+    N(\Delta t) = \frac{4 \pi R_*^2 f_{\rm spot}}{A_{\rm mean}} \frac{\Delta t}{\tau_\text{spot}}
 \end{equation}
-where $R_*$ is the stellar radius, $f_{\rm spot}$ is the fraction of the surface covered by spots in growth-decay equilibrium, $A_{\rm mean}$ is the lifetime-averaged mean spot area, and $T$ is the spot lifetime, defined as:
+where $R_*$ is the stellar radius, $f_{\rm spot}$ is the fraction of the surface covered by spots in growth-decay equilibrium, $A_{\rm mean}$ is the lifetime-averaged mean spot area, and $\tau_\text{spot}$ is the spot lifetime, defined as:
 \begin{equation}
-    T = \frac{A_0}{W} - \frac{1}{\tau} \ln{\left (\frac{A_{\rm min}}{A_0}\right )}
+    \tau_\text{spot} = \frac{A_0}{W} - \frac{1}{\tau} \ln{\left (\frac{A_{\rm min}}{A_0}\right )}
 \end{equation}
 where $A_{\rm min}$ is the area given to each spot when it is initialized. There are also two modes to distribute spots on the star's surface. The first distributes them isotropically; the second, modeled after analysis of spots on the Sun by \citet{mandal2017}, concentrates the spot latitude around $\pm 15^{\circ}$.
 
@@ -515,7 +533,7 @@ Where $\tilde{T}$ is the dimensionless temperature defined as $T/T_0$, or the te
 
 \subsection{Extending to 3 Dimensions}
 
-The treatment by \citet{cowan2011} includes no mixing in the latitudinal direction, nor a vertical temperature profile. To allow for variations in pressure and inclination, we augment their treatment with several simple approximations for latitudinal and vertical temperature variations. 
+The treatment by \citet{cowan2011} includes no mixing in the latitudinal direction, nor a vertical temperature profile. To allow for variations in pressure and inclination, we augment their treatment with several simple approximations for latitudinal and vertical temperature variations. However, it should be noted that these assumptions produce a discontinuity at the poles, which is non-physical. A more physically-motivated model of latitudinal mixing (e.g., including a diffusion parameter in the heat transport equation) would avoid this caveat, but would also be more expensive to produce.
 
 We add a parameter $\alpha$ that is defined by the ratio between the polar temperature and the equatorial temperature at any given longitude. We define $f(\lambda;\alpha)$ to be the temperature as a function of latitude $\lambda$ at an arbitrary longitude; therefore if the surface is in equilibrium, the energy balance requires the outgoing energy flux to be independent of $\alpha$:
 \begin{equation}
@@ -560,8 +578,11 @@ We can now write a general parameterization for the temperature as a function of
 %\subsection{Pressure and Temperature}
 Combining Equation (\ref{eq:temp_gen}) with the numerically-computed equatorial temperatures yields a 2D temperature map that covers the surface of the planet. We construct a 3D atmosphere on top of this surface assuming the atmosphere is adiabatic with index $\gamma$. The user supplies both the adiabatic index and the surface pressure $P_{\rm surf}$. The temperature at some altitude $z$ is given by
 \begin{equation}
+    \label{eq:tz}
     T_z = T_{\rm surf}\,\left( \frac{P_z}{P_{\rm surf}} \right)^{1-\frac{1}{\gamma}}
 \end{equation}
+
+Prescribing the temperature profile via Equation (\ref{eq:tz}) is, of course, an oversimplification. The profile does not consider the energy transport between layers of the atmosphere, and will violate the energy balance of the planet. We emphasize that this model is meant to approximate an atmosphere quickly, not be a self-consistent climate model.
 
 Finally, we populate our atmosphere with molecules. The user specifies the species and abundance, and the atmosphere is filled accordingly with a constant molecular suite.
 
@@ -584,7 +605,7 @@ stellar surface can lead to a false atmospheric signal -- a phenomenon known as 
 
 During primary transit of a planet with an atmosphere, the atmosphere is illuminated by the portion of the star directly behind the planet. Ideally, the depth of the transit should be measured with respect to the spectrum of the region of the stellar surface covered by the planet. However, the disk-integrated stellar spectrum (as measured before an after the transit) is used as the baseline. In the case that the stellar surface is not homogeneous, the transit signal is modulated by the uncorrected stellar inhomogeneities. In this example, we will reproduce the TLS results by \citet{moran2023}, who contended with this degeneracy with JWST/NIRSpec observations during a transit of super-Earth GJ 486b.
 
-Whenever possible, we draw parameter values from \citet{moran2023} and the NExScI rchive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/GJ486b}}. We use the JWST NIRSpec/G395H instrument setup from PSG with an observing time of 3.53 hours with an 8 minute cadence to match \citet{moran2023}, but set $R=200$ to account for the resolution of their reduction.
+Whenever possible, we draw parameter values from \citet{moran2023} and the NExScI rchive\footnote{\url{https://exoplanetarchive.ipac.caltech.edu/overview/GJ486b}}. We use the JWST NIRSpec/G395H instrument setup from PSG with an observing time of 3.53 hours with an 8 minute cadence to match \citet{moran2023}, but set $R=200$ to account for the resolution of their reduction. For simplicity, we do not include limb darkening or stellar rotation.
 
 We performed two \vspec{} simulations based on the two scenarios described in \citet{moran2023}:
 \begin{enumerate}
@@ -593,7 +614,7 @@ We performed two \vspec{} simulations based on the two scenarios described in \c
 \end{enumerate}
 
 In Case \ref{case:1barh2o} we expect to see an absorption spectrum characteristic of \ce{H2O}. Case \ref{case:no_atmo} is more complicated, though in the absence of spots we would expect a flat spectrum. Note also that we disabled \ce{H2O}-\ce{H2O} collision-induced absorption (CIA) for
-these simulations because the effect was not considered in the original analysis of GJ 486b.
+these simulations because the effect was not considered in the original analysis of GJ 486b. This is a simplified and highly controlled experiment, so there is no need to use standard transit light curve fitting techniques. We are able to compute the transit depth as $(f_\text{pre}-f_\text{tr})/f_\text{pre}$, where $f_\text{pre}$ is the total spectrum before the transit, at an epoch chosen by visual inspection, and $f_\text{tr}$ is the total spectrum during the transit, again chosen by visual inspection. A light curve fitting code would be needed if we had introduced stellar rotation or limb darkening.
 
 We find that, as expected, the addition of spots changes the transit depth in a way that depends on wavelength -- mimicking light that would be lost to absorbers in a planetary atmosphere. Figure \ref{fig:moran_transit} shows us that, in this case, we observe false absorption signals; this is due to a temporary increase in the spotted fraction of the surface relative to the quiet photosphere. However, if a spot was blocked by the planet we might see similar features inverted to mimic emission.
 

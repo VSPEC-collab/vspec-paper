@@ -582,7 +582,7 @@ Combining Equation (\ref{eq:temp_gen}) with the numerically-computed equatorial 
     T_z = T_{\rm surf}\,\left( \frac{P_z}{P_{\rm surf}} \right)^{1-\frac{1}{\gamma}}
 \end{equation}
 
-It should be noted that varying temperature in the z direction via Equation (\ref{eq:tz}) violates one of the assumptions of the \citet{cowan2011} prescription -- that the gas parcel modeled is several scale heights thick. It also does not allow for heat exchange between atmosphere layers, which could have significant impacts on the atmosphere's energy balance.
+Prescribing the temperature profile via Equation (\ref{eq:tz}) is, of course, an oversimplification. The profile does not consider the energy transport between layers of the atmosphere, and will violate the energy balance of the planet. We emphasize that this model is meant to approximate an atmosphere quickly, not be a self-consistent climate model.
 
 Finally, we populate our atmosphere with molecules. The user specifies the species and abundance, and the atmosphere is filled accordingly with a constant molecular suite.
 

@@ -578,8 +578,11 @@ We can now write a general parameterization for the temperature as a function of
 %\subsection{Pressure and Temperature}
 Combining Equation (\ref{eq:temp_gen}) with the numerically-computed equatorial temperatures yields a 2D temperature map that covers the surface of the planet. We construct a 3D atmosphere on top of this surface assuming the atmosphere is adiabatic with index $\gamma$. The user supplies both the adiabatic index and the surface pressure $P_{\rm surf}$. The temperature at some altitude $z$ is given by
 \begin{equation}
+    \label{eq:tz}
     T_z = T_{\rm surf}\,\left( \frac{P_z}{P_{\rm surf}} \right)^{1-\frac{1}{\gamma}}
 \end{equation}
+
+It should be noted that varying temperature in the z direction via Equation (\ref{eq:tz}) violates one of the assumptions of the \citet{cowan2011} prescription -- that the gas parcel modeled is several scale heights thick. It also does not allow for heat exchange between atmosphere layers, which could have significant impacts on the atmosphere's energy balance.
 
 Finally, we populate our atmosphere with molecules. The user specifies the species and abundance, and the atmosphere is filled accordingly with a constant molecular suite.
 

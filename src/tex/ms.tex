@@ -158,7 +158,12 @@ In this paper we will describe the science motivation behind all of these codes,
 
 The typical flow of \vspec{}'s code is shown in Figure \ref{fig:vspec-diagram}, as well as described in the following sections.
 It is generally broken into four parts: i) read in the configuration, ii) compute planetary spectra, iii) compute stellar spectra, iv) analyze, with steps (i) and (iv) varying widely by use case.
-See the \vspec{} documentation page\footnote{\urldocsvspec} for detailed API documentation.
+
+Most users of \vspec{} will interact exclusively with two classes: \texttt{VSPEC.ObservationModel} and \texttt{VSPEC.PhaseAnalyzer}. The bulk of the work is done by the \texttt{ObservationModel} class, as it reads in a user's inputs, runs the model, and writes output files. \vspec{} produces many output files, which themselves can be read easily using tools such as Astropy \citep{astropycollaboration2013,astropycollaboration2018,astropycollaboration2022}. However, the \texttt{PhaseAnalyzer} class makes it easy to read them as an ensemble, as well as quickly pull out portions of the data that are of interest.
+
+Section \ref{subsec:config} describes initializing the \texttt{ObservationModel}. Section \ref{subsec:phase-curve} describes computing the planetary phase curve using the \texttt{ObservationModel.build\_planet()} method. The next step, calling \texttt{ObservationModel.build\_spectra()}, recalls the data produced by PSG previously, but combines it with a spectral model of a variable star, scaling reflected light and noise appropriately. This step, along with detailed descriptions of various substeps, is described in Sections \ref{subsec:stellar-lc}, \ref{subsec:reflected}, \ref{subsec:noise}, and \ref{subsec:transit}.
+
+Use of the \texttt{PhaseAnalyzer} object is not described in detail as it mostly acts as a container, but Section \ref{sec:examples} includes many examples of its use. Additionally, the \vspec{} documentation page\footnote{\urldocsvspec} contains detailed API documentation.
 \subsection{Configuring \vspec{}}
 \label{subsec:config}
 
@@ -193,30 +198,28 @@ params = InternalParameters(
 This is convenient for producing configurations programmatically, for example for producing a grid of model phase curves.
 
 However the user decides to provide model parameters, they are read into the main \vspec{} object: the \texttt{ObservationModel}.
-This is the class that runs the model and handles files. Upon initialization a local working directory
-(by convention \texttt{.vspec}) is created to store simulation outputs and intermediate files.
+Upon initialization a local working directory (by convention \texttt{.vspec/}) is created to store simulation outputs and intermediate files.
 
 \subsection{Planetary Phase Curve}
 \label{subsec:phase-curve}
-\vspec{} generates a phase curve though a series of API calls to the Planetary Spectrum Generator \citep[PSG][]{villanueva2018}, using
-\texttt{libpypsg} (see Section \ref{sec:libpypsg}) to interface with the API. Initially, configurations are sent that give PSG information about
-the system that does not change with time -- that includes the 3D Global Circulation Model (GCM) and instrument parameters. \vspec{} then enters
-the main loop, iterating through each observation epoch (e.g.integration or combination of integrations) and making a pair of API calls: one to get a combined light spectrum and one to get the thermal flux only.
-Results from PSG in each epoch are stored locally in the \texttt{.fits} format. 
+\vspec{} generates a phase curve when the \texttt{ObservationModel.build\_planet()} method is called. It does this though a series of API calls to the Planetary Spectrum Generator \citep[PSG][]{villanueva2018}, using \texttt{libpypsg} (see Section \ref{sec:libpypsg}) to interface with the API. Initially, configurations are sent that give PSG information about the system that does not change with time -- that includes the 3D Global Circulation Model (GCM) and instrument parameters. \vspec{} then enters the main loop, iterating through each observation epoch (e.g.integration or combination of integrations) and making a pair of API calls: one to get a combined light spectrum and one to get the thermal flux only. Results from PSG in each epoch are stored locally in the \texttt{.fits} format. 
 
 \subsubsection{Phase Sampling}
 Making API calls to PSG can be computationally expensive, especially when trying to resolve small structures in the climate model. In order to reduce unnecessary calls to PSG, the temporal sampling of the planetary spectrum is independent of the stellar model/output sampling. When computing the planetary flux in the output files, the raw PSG output is interpolated and averaged over each time step using the trapezoid integration rule. By default one spectrum is computed with PSG at each interface separating time steps; this eases the calculation of edge effects between steps.
 
 \subsection{Stellar light curve}
+\label{subsec:stellar-lc}
 
-The last step is to replace the stellar spectra used by PSG with \vspec{}'s stellar model. In this step \vspec{} acts as a bridge between
+The last step is to replace the stellar spectra used by PSG with \vspec{}'s stellar model by calling the \texttt{ObservationModel.build\_spectra()} method. In this step \vspec{} acts as a bridge between
 the stellar surface model \texttt{vspec-vsm} (which models spatial changes to the star with time, see Section \ref{sec:star}) and a grid of
 pre-computed stellar spectra (from the GridPolator package; see Section \ref{sec:gridpolator}). The star is initialized and allowed to evolve for a user-specified amount of time in order for spots and faculae to approach growth-decay equilibrium (this is also called the ``burn in'' phase). The star is then evolved at the output cadence, generating a set of key-value pairs at each epoch that describe the surface temperature and coverage fractions of the portion of the stellar disk visible to the observer. These \teff s and coverage fractions are fed into GridPolator to produce composite stellar spectra.
 
 \subsection{Reflected light}
+\label{subsec:reflected}
 \vspec{} then produces a composite spectrum of the portion of the star visible to the planet to accurately incorporate the time-dependent stellar flux into the reflected-light spectrum. To compute the total reflected light in the output files, \vspec{} first divides the reflected light flux from PSG by the PSG stellar model to obtain the apparent albedo (I/F). This albedo is then multiplied by the composite stellar spectrum (facing the planet) to obtain the total reflected flux.
 
 \subsection{Simulated Noise}
+\label{subsec:noise}
 Alongside the planetary radiance files, PSG returns a file giving the analytic noise estimate for each epoch broken down by source. We assume that the total noise is the quadrature sum of its constituent parts and that the \texttt{source} column (i.e. photon noise) is the only one affected by replacing one stellar spectrum with the other. This means the photon noise can be calculated:
 \begin{equation}
     N_{\rm photon} = N_{\rm photon,~PSG} \sqrt{\frac{F_{*,\rm ~VSPEC}}{F_{*,\rm ~PSG}}}
@@ -229,6 +232,7 @@ where $F_*$ is the stellar flux. The total noise associated with the integration
 \end{equation}
 
 \subsection{Transit and Eclipse}
+\label{subsec:transit}
 Users must be careful when using \vspec{} to simulate transit and eclipse measurements because of the vast timescale differences between those events and the typical phase variations of a planet -- a sparsely sampled phase curve that happens to include one epoch of transit will not adequately sample the light curve accurately during a transit or eclipse because the interpolator knows no better than to assume a linear interpolation scheme. It is recommended that users use a high cadence for observations of transits and eclipses so that each event will be sampled by more than one point.
 
 In the case of a transiting geometry, \vspec{} computes the spectrum of the occulted portion of the star in order to properly simulate the transit light source effect \citep[TLS][]{rackham2018}. This spectrum is the flux blocked by the planet in the case that it is a solid occulting circle, and therefore produces a flat transmission spectrum. The effect of atmospheric transmission is added by comparing the PSG-computed effective radius to a purely geometric calculation of such a ``bare-rock" transit depth:

@@ -278,7 +278,7 @@ for data,label,color in zip(
     ax.plot(data.wavelength,transit_depth*1e6,label=label,color=color)
 
 ax.errorbar(moran_x,moran_y,yerr=moran_yerr,
-    fmt='o',color='k',label='Moran+23 Eureka!',markersize=3)
+    fmt='o',color='k',label='Moran+23 Eureka!',markersize=3,zorder=-100)
 
 ax.set_xlabel('Wavelength (um)')
 ax.set_ylabel('Transit depth (ppm)')
